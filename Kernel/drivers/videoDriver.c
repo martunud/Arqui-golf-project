@@ -78,8 +78,7 @@ void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
     //Actualizar la posicion
     cursorX += FONT_WIDTH;
     if(cursorX >= VBEModeInfo->width) {
-        cursorX = 0;
-        cursorY += FONT_HEIGHT;
+        video_newLine();
     }
 }
 
@@ -95,9 +94,47 @@ void video_clearScreen() {
 
 void video_putString(char *string, uint64_t foregroundColor, uint64_t backgroundColor) {
     while(*string) {
-        //imprimo el caracter
-        video_putChar(*string, foregroundColor, backgroundColor);
+        switch(*string) {
+            case '\n':
+                video_newLine();
+                break;
+            case '\b':
+                video_backSpace();
+                break;
+            case '\t':
+                video_tab();
+                break;
+            default:
+                //si no es un caracter especial entonces llamo a putchar
+                video_putChar(*string, foregroundColor, backgroundColor);
+                break;
+        }
         string++;
-        
+    }
+}
+
+void video_newLine(){
+    cursorX = 0;
+    cursorY += FONT_HEIGHT;
+}
+
+//Hay que arreglar para cuando borramos el primer caracter de la linea
+
+void video_backSpace(){
+    if(cursorX > 0){
+        cursorX -= FONT_WIDTH;
+        for(int i = 0; i < FONT_WIDTH; i++){
+            for(int j = 0; j < FONT_HEIGHT; j++){
+                video_putPixel(BACKGROUND_COLOR, cursorX + i, cursorY + j);
+            }
+        }
+    }
+}
+
+void video_tab(){
+    uint64_t step = FONT_WIDTH * 8;
+    cursorX = (cursorX / (step) + 1) * (step);
+    if(cursorX > VBEModeInfo->width){
+        video_newLine();
     }
 }

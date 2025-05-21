@@ -110,7 +110,11 @@ int main()
 	video_putChar(' ', 0xFFFFFF, 0x000000);
 	video_putChar(' ', 0xFFFFFF, 0x000000);
 	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putString("Prueba de video", 0xFFFFFF, 0x000000);
+	video_putString("Prueba de video ", 0xFFFFFF, 0x000000);
+	video_putString("tab:\t y ahora un enter\n y ahora un backspace\b", 0xFFFFFF, 0x000000);
+
+	video_putString("\nHola\tcomo\testas\n", 0xFFFFFF, 0x000000);
+	video_putString("\blinea de abajo", 0xFFFFFF, 0x000000);
 	
 	ncPrint("[Finished]");
 	return 0;

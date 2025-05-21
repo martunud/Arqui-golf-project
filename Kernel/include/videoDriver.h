@@ -17,4 +17,11 @@ void video_clearScreen();
 
 void video_putString(char *string, uint64_t foregroundColor, uint64_t backgroundColor);
 
+void video_newLine();
+
+void video_backSpace();
+
+void video_tab();
+
+
 #endif
