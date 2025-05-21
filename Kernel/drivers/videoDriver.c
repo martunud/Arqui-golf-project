@@ -42,6 +42,11 @@ struct vbe_mode_info_structure {
 
 VBEinfoPtr VBEModeInfo = (VBEinfoPtr) 0x0000000000005C00;
 
+//Variables para la posicion
+uint64_t cursorX = 0;
+uint64_t cursorY = 0;
+
+
 void video_putPixel(uint32_t color, uint64_t x, uint64_t y) {
     uint8_t * framebuffer = (uint8_t *)(uintptr_t) VBEModeInfo->framebuffer;
     uint64_t offset = (x * ((VBEModeInfo->bpp)/8)) + (y * VBEModeInfo->pitch);
@@ -63,11 +68,36 @@ void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
             // Verificar si el bit está activo en el patrón
             if (charPattern[y] & (1 << x)) {
                 // Si el bit está activo, dibujar el pixel con el color de primer plano
-                video_putPixel(foregroundColor, x, y);
+                video_putPixel(foregroundColor, cursorX + x, cursorY + y);
             } else {
                 // Si el bit está inactivo, dibujar el pixel con el color de fondo
-                video_putPixel(backgroundColor, x, y);
+                video_putPixel(backgroundColor, cursorX + x, cursorY + y);
             }
         }
+    }
+    //Actualizar la posicion
+    cursorX += FONT_WIDTH;
+    if(cursorX >= VBEModeInfo->width) {
+        cursorX = 0;
+        cursorY += FONT_HEIGHT;
+    }
+}
+
+void video_clearScreen() {
+    for(int i=0; i<VBEModeInfo->height; i++) {
+        for(int j=0; j<VBEModeInfo->width; j++) {
+            video_putPixel(BACKGROUND_COLOR, j, i);
+        }
+    }
+    cursorX = 0;
+    cursorY = 0;
+}
+
+void video_putString(char *string, uint64_t foregroundColor, uint64_t backgroundColor) {
+    while(*string) {
+        //imprimo el caracter
+        video_putChar(*string, foregroundColor, backgroundColor);
+        string++;
+        
     }
 }
