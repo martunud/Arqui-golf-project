@@ -8,9 +8,21 @@
 
 
 typedef struct vbe_mode_info_structure *VBEinfoPtr;
-
+ 
+/**
+ * dibuja un pixel en las coordenadas dadas
+ * color: color del pixel en hexa
+ * x: coordenada x del pixel
+ * y: coordenada y del pixel
+ */
 void video_putPixel(uint32_t color, uint64_t x, uint64_t y);
 
+/*
+ * dibuja un caracter en la pantalla
+ * c: caracter a dibujar
+ * foregroundColor: color del caracter en hexa
+ * backgroundColor: color de fondo en hexa
+*/
 void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor);
 
 void video_clearScreen();
