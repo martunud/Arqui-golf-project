@@ -3,6 +3,7 @@
 #include <lib.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include "include/videoDriver.h"
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -99,6 +100,18 @@ int main()
 	ncPrint((char*)sampleDataModuleAddress);
 	ncNewline();
 
+	video_putChar('s', 0xFFFFFF, 0x000000);
+	video_putChar('e', 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putString("Hola mundo", 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putChar(' ', 0xFFFFFF, 0x000000);
+	video_putString("Prueba de video", 0xFFFFFF, 0x000000);
+	
 	ncPrint("[Finished]");
 	return 0;
 }
