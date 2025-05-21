@@ -4,6 +4,8 @@
 #include <moduleLoader.h>
 #include <naiveConsole.h>
 #include "include/videoDriver.h"
+#include "include/keyboardDriver.h"
+#include "include/idtLoader.h"
 
 extern uint8_t text;
 extern uint8_t rodata;
@@ -81,8 +83,28 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
+void test_keyboard() {
+    char c;
+    video_clearScreen();
+    video_putString("Test de teclado - Presione ESC para salir\n", 0xFFFFFF, 0x000000);
+    
+    while(1) {
+        c = keyboard_read_getchar();
+        if(c != 0) {
+            if(c == 27) {  // ESC
+                video_putString("\nSaliendo...\n", 0xFFFFFF, 0x000000);
+                break;
+            }
+            video_putChar(c, 0xFFFFFF, 0x000000);
+        }
+    }
+}
+
 int main()
 {	
+	load_idt();
+
+	test_keyboard();
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
