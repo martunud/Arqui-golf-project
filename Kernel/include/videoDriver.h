@@ -35,5 +35,6 @@ void video_backSpace();
 
 void video_tab();
 
+//void video_scrollUp(); funcion para mover la pantalla hacia arriba
 
 #endif

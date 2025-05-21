@@ -138,3 +138,10 @@ void video_tab(){
         video_newLine();
     }
 }
+
+// static void clearLine()
+
+
+// void video_scrollUp(){
+
+// }
