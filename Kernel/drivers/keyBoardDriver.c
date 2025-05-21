@@ -1,6 +1,13 @@
 #include "keyboardDriver.h"
 #include "interrupts.h" 
 
+#define SC_UP     0x48
+#define SC_DOWN   0x50
+#define SC_LEFT   0x4B
+#define SC_RIGHT  0x4D
+#define SC_SPACE  0x39
+#define SC_TAB    0x0F
+
 extern uint8_t getScanCode();
 extern void _refreshRegisters(void);
 extern uint64_t* _getRegisters();
@@ -16,13 +23,18 @@ static void updateFlags(uint8_t scancode);
 
 // En primer indice char sin shift, en segundo indice char con shift
 static const char scancode_table[KEY_COUNT][2] = {
-    {0, 0}, {27, 27}, {'1', '!'}, {'2', '@'}, {'3', '#'}, {'4', '$'}, {'5', '%'}, {'6', '^'},
-    {'7', '&'}, {'8', '*'}, {'9', '('}, {'0', ')'}, {'-', '_'}, {'=', '+'}, {'\b', '\b'}, {'\t', '\t'},
-    {'q', 'Q'}, {'w', 'W'}, {'e', 'E'}, {'r', 'R'}, {'t', 'T'}, {'y', 'Y'}, {'u', 'U'}, {'i', 'I'},
-    {'o', 'O'}, {'p', 'P'}, {'[', '{'}, {']', '}'}, {'\n', '\n'}, {0, 0}, {'a', 'A'}, {'s', 'S'},
-    {'d', 'D'}, {'f', 'F'}, {'g', 'G'}, {'h', 'H'}, {'j', 'J'}, {'k', 'K'}, {'l', 'L'}, {';', ':'},
-    {'\'', '\"'}, {'`', '~'}, {0, 0}, {'\\', '|'}, {'z', 'Z'}, {'x', 'X'}, {'c', 'C'}, {'v', 'V'},
-    {'b', 'B'}, {'n', 'N'}, {'m', 'M'}, {',', '<'}, {'.', '>'}, {'/', '?'}, {0, 0}, {0, 0}
+     {0, 0}, {ESC, ESC}, {'1', '!'}, {'2', '@'}, {'3', '#'},
+        {'4', '$'}, {'5', '%'}, {'6', '^'}, {'7', '&'}, {'8', '*'},
+        {'9', '('}, {'0', ')'}, {'-', '_'}, {'=', '+'}, {'\b', '\b'},
+        {'\t', '\t'}, {'q', 'Q'}, {'w', 'W'}, {'e', 'E'}, {'r', 'R'},
+        {'t', 'T'}, {'y', 'Y'}, {'u', 'U'}, {'i', 'I'}, {'o', 'O'},
+        {'p', 'P'}, {'[', '{'}, {']', '}'}, {'\n', '\n'}, {0, 0},
+        {'a', 'A'}, {'s', 'S'}, {'d', 'D'}, {'f', 'F'}, {'g', 'G'},
+        {'h', 'H'}, {'j', 'J'}, {'k', 'K'}, {'l', 'L'}, {';', ':'},
+        {'\'', '\"'}, {'`', '~'}, {0, 0}, {'\\', '|'}, {'z', 'Z'},
+        {'x', 'X'}, {'c', 'C'}, {'v', 'V'}, {'b', 'B'}, {'n', 'N'},
+        {'m', 'M'}, {',', '<'}, {'.', '>'}, {'/', '?'}, {0, 0}, {0, 0},
+        {0, 0}, {' ', ' '}
 };
 
 
@@ -114,14 +126,41 @@ char keyboard_read_getchar() {
 
 static char scToAscii(uint8_t scancode) {
     char c = 0;
-    if(scancode < KEY_COUNT) {
+
+    if (scancode < KEY_COUNT) {
         c = scancode_table[scancode][activeShift];
-        if(activeCapsLock && c >= 'a' && c <= 'z') {
-            c -= 32; // Convierte a mayúscula
+        if (activeCapsLock && c >= 'a' && c <= 'z') {
+            c -= 32;
+        }
+    } else {
+        switch (scancode) {
+            case SC_SPACE:
+                c = ' ';
+                break;
+            case SC_TAB:
+                c = '\t';
+                break;
+            case SC_UP:
+                c = 0x1B; 
+                break;
+            case SC_DOWN:
+                c = 0x1B;
+                break;
+            case SC_LEFT:
+                c = 0x1B;
+                break;
+            case SC_RIGHT:
+                c = 0x1B;
+                break;
+            default:
+                c = 0;
+                break;
         }
     }
+
     return c;
 }
+
 
 void refreshRegisters() {
     _refreshRegisters();

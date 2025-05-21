@@ -21,7 +21,6 @@
 
 
 
-
 /* Manejador de interrupciones para el teclado, 
  * se ejecuta cuando el teclado genera una interrupcion
 */
