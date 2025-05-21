@@ -12,7 +12,20 @@
 #define CTRL_L_RELEASE 0x9D
 #define CAPSLOCK 0x3A
 #define RELEASE_OFFSET 0x80
-#define KEYS_AMOUNT 59
+#define KEY_COUNT 59
+#define KEYBOARD_DATA_PORT 0x60
+#define MAX_SCANCODE 0x58
+#define BUFFER_SIZE 256
+#define REGISTERS_CANT 16
+
+static int buffer_empty();
+static int buffer_full();
+static char buffer_pop();
+static char buffer_push(char c);
+static char scToAscii(uint8_t scancode);
+static void updateFlags(uint8_t scancode);
+
+
 
 /* Manejador de interrupciones para el teclado, 
  * se ejecuta cuando el teclado genera una interrupcion
