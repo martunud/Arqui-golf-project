@@ -6,6 +6,12 @@ extern void _refreshRegisters(void);
 extern uint64_t* _getRegisters();
 
 void refreshRegisters(void);
+static int buffer_empty();
+static int buffer_full();
+static char buffer_pop();
+static char buffer_push(char c);
+static char scToAscii(uint8_t scancode);
+static void updateFlags(uint8_t scancode);
 
 
 // En primer indice char sin shift, en segundo indice char con shift
@@ -57,7 +63,7 @@ void keyboard_interrupt_handler() {
 
 
 static void updateFlags(uint8_t scancode) {
-    if (scancode == CTRL_L_RELEASE) {
+    if (scancode == CTRL_L) {
         activeCtrl = 1;
     }
     else if (scancode == CTRL_L_RELEASE) {

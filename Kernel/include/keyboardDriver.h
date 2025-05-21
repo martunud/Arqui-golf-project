@@ -18,12 +18,7 @@
 #define BUFFER_SIZE 256
 #define REGISTERS_CANT 16
 
-static int buffer_empty();
-static int buffer_full();
-static char buffer_pop();
-static char buffer_push(char c);
-static char scToAscii(uint8_t scancode);
-static void updateFlags(uint8_t scancode);
+
 
 
 
