@@ -60,13 +60,13 @@ void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
     uint8_t charIndex = (uint8_t)c;
     
     // Obtener el patrón de bits del carácter
-    char* charPattern = font8x8_basic[charIndex];
+    unsigned char* charPattern = font8x16[charIndex];
     
     // Dibujar el carácter pixel por pixel
     for (int y = 0; y < FONT_HEIGHT; y++) {
         for (int x = 0; x < FONT_WIDTH; x++) {
             // Verificar si el bit está activo en el patrón
-            if (charPattern[y] & (1 << x)) {
+            if (charPattern[y] & (1 << (7 - x))) {
                 // Si el bit está activo, dibujar el pixel con el color de primer plano
                 video_putPixel(foregroundColor, cursorX + x, cursorY + y);
             } else {
