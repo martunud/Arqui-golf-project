@@ -5,9 +5,15 @@ void putchar(char c) {
     sys_write(1, &c, 1);
 }
 
-char getchar() {
+char getchar(void) {
     char c;
-    sys_read(0, &c, 1);
+    int n;
+
+    do{
+        n = sys_read(0, &c, 1);
+    }while (n == 0);
+
     return c;
 }
+
 
