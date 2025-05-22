@@ -117,7 +117,9 @@ static char buffer_push(char c) {
 }
 
 static char buffer_pop() {
-    if (buffer_empty()) return 0;
+    if (buffer_empty()){
+        return 0;
+    }
 
     char c = buffer.buffer[buffer.readIndex];
     buffer.readIndex = (buffer.readIndex + 1) % BUFFER_SIZE;
