@@ -105,7 +105,7 @@ int main()
 {	
 	load_idt();
 
-	test_keyboard();
+	//test_keyboard();
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
@@ -123,21 +123,21 @@ int main()
 	ncPrint((char*)sampleDataModuleAddress);
 	ncNewline();
 
-	video_putChar('s', 0xFFFFFF, 0x000000);
-	video_putChar('e', 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putString("Hola mundo", 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putChar(' ', 0xFFFFFF, 0x000000);
-	video_putString("Prueba de video ", 0xFFFFFF, 0x000000);
-	video_putString("tab:\t y ahora un enter\n y ahora un backspace\b", 0xFFFFFF, 0x000000);
+	// video_putChar('s', 0xFFFFFF, 0x000000);
+	// video_putChar('e', 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putString("Hola mundo", 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putChar(' ', 0xFFFFFF, 0x000000);
+	// video_putString("Prueba de video ", 0xFFFFFF, 0x000000);
+	// video_putString("tab:\t y ahora un enter\n y ahora un backspace\b", 0xFFFFFF, 0x000000);
 
-	video_putString("\nHola\tcomo\testas\n", 0xFFFFFF, 0x000000);
-	video_putString("\blinea de abajo", 0xFFFFFF, 0x000000);
+	// video_putString("\nHola\tcomo\testas\n", 0xFFFFFF, 0x000000);
+	// video_putString("\blinea de abajo", 0xFFFFFF, 0x000000);
 	
 	ncPrint("[Finished]");
 	return 0;

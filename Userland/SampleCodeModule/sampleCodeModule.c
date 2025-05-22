@@ -1,19 +1,60 @@
 /* sampleCodeModule.c */
-
-char * v = (char*)0xB8000 + 79 * 2;
-
-static int var1 = 0;
-static int var2 = 0;
-
+#include "include/lib.h"
 
 int main() {
-	//All the following code may be removed 
-	*v = 'X';
-	*(v+1) = 0x74;
+    putchar('H');
+    putchar('o');
+    putchar('l');
+    putchar('a');
+    putchar('\n');
 
-	//Test if BSS is properly set up
-	if (var1 == 0 && var2 == 0)
-		return 0xDEADC0DE;
+    putchar('E');
+	putchar('\t');
+    putchar('s');
+    putchar('c');
+    putchar('r');
+    putchar('i');
+    putchar('b');
+    putchar('e');
+    putchar(' ');
+    putchar('u');
+    putchar('n');
+    putchar(' ');
+    putchar('c');
+    putchar('a');
+    putchar('r');
+    putchar('a');
+    putchar('c');
+    putchar('t');
+    putchar('e');
+    putchar('r');
+    putchar(':');
+    putchar(' ');
+
+    char c = getchar();
+    putchar('\n');
+    putchar('L');
+    putchar('e');
+    putchar('i');
+    putchar('s');
+    putchar('t');
+    putchar('e');
+    putchar(' ');
+    putchar('e');
+    putchar('l');
+    putchar(' ');
+    putchar('c');
+    putchar('a');
+    putchar('r');
+    putchar('a');
+    putchar('c');
+    putchar('t');
+    putchar('e');
+    putchar('r');
+    putchar(':');
+    putchar(' ');
+    putchar(c);
+    putchar('\n');
 
 	return 0xDEADBEEF;
 }
