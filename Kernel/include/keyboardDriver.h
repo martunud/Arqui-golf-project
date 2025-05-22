@@ -43,9 +43,4 @@ char keyboard_read_getchar();
 */
 uint64_t getRegisters(uint64_t * r);
 
-
-// ...existing code...
-char keyboard_get_last_arrow();
-// ...existing code...
-
 #endif // KEYBOARD_DRIVER_H

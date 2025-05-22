@@ -37,18 +37,18 @@ static const char scancode_table[KEY_COUNT][2] = {
     {0, 0}, {' ', ' '},
     // Keypad (scancodes 0x47 - 0x53)
     [0x47] = {'7', '7'}, // Keypad 7
-    [0x48] = {0, 0},     // Keypad 8 / FLECHA ARRIBA: NO DEVUELVE NADA
+    [0x48] = {'8', '8'}, // Keypad 8
     [0x49] = {'9', '9'}, // Keypad 9
-    [0x4B] = {0, 0},     // Keypad 4 / FLECHA IZQUIERDA: NO DEVUELVE NADA
+    [0x4B] = {'4', '4'}, // Keypad 4
     [0x4C] = {'5', '5'}, // Keypad 5
-    [0x4D] = {0, 0},     // Keypad 6 / FLECHA DERECHA: NO DEVUELVE NADA
+    [0x4D] = {'6', '6'}, // Keypad 6
     [0x4F] = {'1', '1'}, // Keypad 1
-    [0x50] = {0, 0},     // Keypad 2 / FLECHA ABAJO: NO DEVUELVE NADA
+    [0x50] = {'2', '2'}, // Keypad 2
     [0x51] = {'3', '3'}, // Keypad 3
     [0x52] = {'0', '0'}, // Keypad 0
-    [0x53] = {'.', '.'}, // Keypad .
+    [0x53] = {'.', '.'},  // Keypad .
     [0x4A] = {'-', '-'}, // Keypad -
-    [0x4E] = {'+', '+'}, // Keypad +
+    [0x4E] = {'+', '+'},  // Keypad +
 };
 
 
@@ -71,49 +71,19 @@ static volatile uint64_t registers[REGISTERS_CANT];   //Arreglo de registros
 
 static volatile uint8_t regsLoaded = 0;           //Flag para saber si se cargaron los registros
 
-static volatile char last_arrow = 0;
-
-static uint8_t lastWasE0 = 0;
 
 void keyboard_interrupt_handler() {
-    uint8_t scancode = getScanCode();
+    uint8_t scancode = getScanCode();           
+    updateFlags(scancode);                     
 
-    // Doble scancode (tecla extendida, ej: flechas)
-    if (scancode == 0xE0) {
-        lastWasE0 = 1;
-        return;
-    }
+    char cAscii = scToAscii(scancode);        
 
-    if (lastWasE0) {
-        // Este scancode es el segundo de una tecla extendida
-        switch (scancode) {
-            case 0x48: last_arrow = KEY_ARROW_UP; break;
-            case 0x50: last_arrow = KEY_ARROW_DOWN; break;
-            case 0x4B: last_arrow = KEY_ARROW_LEFT; break;
-            case 0x4D: last_arrow = KEY_ARROW_RIGHT; break;
-            // Podés agregar más teclas extendidas acá
-        }
-        lastWasE0 = 0;
-        return;
-    }
-
-    // No es scancode extendido, manejo normal
-    updateFlags(scancode);
-    char cAscii = scToAscii(scancode);
-
-    if (activeCtrl && (cAscii == 'R' || cAscii == 'r')) {
+    if(activeCtrl && (cAscii == 'R' || cAscii == 'r')) {
         regsLoaded = 1;
         refreshRegisters();
     } else if (cAscii != 0) {
         buffer_push(cAscii);
     }
-}
-
-
-char keyboard_get_last_arrow() {
-    char tmp = last_arrow;
-    last_arrow = 0;
-    return tmp;
 }
 
 
@@ -171,25 +141,31 @@ char keyboard_read_getchar() {
 static char scToAscii(uint8_t scancode) {
     char c = 0;
 
-    // Primero chequea si es una flecha
-    switch (scancode) {
-        case SC_UP:
-            return KEY_ARROW_UP;
-        case SC_DOWN:
-            return KEY_ARROW_DOWN;
-        case SC_LEFT:
-            return KEY_ARROW_LEFT;
-        case SC_RIGHT:
-            return KEY_ARROW_RIGHT;
-    }
-
-    // Si no es flecha, mapea normalmente
     if (scancode < KEY_COUNT) {
         c = scancode_table[scancode][activeShift];
         if (activeCapsLock && c >= 'a' && c <= 'z') {
             c -= 32;
         }
+    } else {
+        switch (scancode) {
+            case SC_UP:
+                c = KEY_ARROW_UP;
+                break;
+            case SC_DOWN:
+                c = KEY_ARROW_DOWN;
+                break;
+            case SC_LEFT:
+                c = KEY_ARROW_LEFT;
+                break;
+            case SC_RIGHT:
+                c = KEY_ARROW_RIGHT;
+                break;
+            default:
+                c = 0;
+                break;
+        }
     }
+
     return c;
 }
 
