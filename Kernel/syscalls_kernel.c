@@ -21,13 +21,13 @@ uint64_t syscall_read(int fd, char * buffer, int count) {
 }
 
 
-uint64_t syscall_write(int fd, const char * buffer, int count, uint32_t foregroundColor, uint32_t backgroundColor) {
+uint64_t syscall_write(int fd, const char * buffer, int count) {
     if (fd != STDOUT) {
         return 0;
     }
     
     for (int i = 0; i < count; i++) {
-        video_putChar(buffer[i], foregroundColor, backgroundColor);
+        video_putChar(buffer[i], FOREGROUND_COLOR, BACKGROUND_COLOR);
     }
     
     return count;

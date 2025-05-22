@@ -15,6 +15,6 @@ uint64_t syscall_read(int fd, char * buffer, int count);
  * buffer: Un puntero a una región de memoria que contiene los datos que se van a escribir
  * count: Un entero que indica la cantidad de bytes que se van a escribir desde el buffer
  */
-uint64_t syscall_write(int fd, const char * buffer, int count, uint32_t foregroundColor, uint32_t backgroundColor);
+uint64_t syscall_write(int fd, const char * buffer, int count);
 
 #endif // SYSCALLS_LIB_H
