@@ -35,20 +35,7 @@ static const char scancode_table[KEY_COUNT][2] = {
     {'x', 'X'}, {'c', 'C'}, {'v', 'V'}, {'b', 'B'}, {'n', 'N'},
     {'m', 'M'}, {',', '<'}, {'.', '>'}, {'/', '?'}, {0, 0}, {0, 0},
     {0, 0}, {' ', ' '},
-    // Keypad (scancodes 0x47 - 0x53)
-    [0x47] = {'7', '7'}, // Keypad 7
-    [0x48] = {'8', '8'}, // Keypad 8
-    [0x49] = {'9', '9'}, // Keypad 9
-    [0x4B] = {'4', '4'}, // Keypad 4
-    [0x4C] = {'5', '5'}, // Keypad 5
-    [0x4D] = {'6', '6'}, // Keypad 6
-    [0x4F] = {'1', '1'}, // Keypad 1
-    [0x50] = {'2', '2'}, // Keypad 2
-    [0x51] = {'3', '3'}, // Keypad 3
-    [0x52] = {'0', '0'}, // Keypad 0
-    [0x53] = {'.', '.'},  // Keypad .
-    [0x4A] = {'-', '-'}, // Keypad -
-    [0x4E] = {'+', '+'},  // Keypad +
+
 };
 
 
@@ -143,31 +130,33 @@ char keyboard_read_getchar() {
 static char scToAscii(uint8_t scancode) {
     char c = 0;
 
+    // Primero chequea flechas
+    switch (scancode) {
+        case SC_UP:
+            c = KEY_ARROW_UP;
+            break;
+        case SC_DOWN:
+            c = KEY_ARROW_DOWN;
+            break;
+        case SC_LEFT:
+            c = KEY_ARROW_LEFT;
+            break;
+        case SC_RIGHT:
+            c = KEY_ARROW_RIGHT;
+            break;
+        default:
+            break;
+    }
+    if (c != 0)
+        return c;
+
+    // Si no es flecha, busca en la tabla
     if (scancode < KEY_COUNT) {
         c = scancode_table[scancode][activeShift];
         if (activeCapsLock && c >= 'a' && c <= 'z') {
             c -= 32;
         }
-    } else {
-        switch (scancode) {
-            case SC_UP:
-                c = KEY_ARROW_UP;
-                break;
-            case SC_DOWN:
-                c = KEY_ARROW_DOWN;
-                break;
-            case SC_LEFT:
-                c = KEY_ARROW_LEFT;
-                break;
-            case SC_RIGHT:
-                c = KEY_ARROW_RIGHT;
-                break;
-            default:
-                c = 0;
-                break;
-        }
     }
-
     return c;
 }
 

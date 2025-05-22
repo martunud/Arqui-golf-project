@@ -35,6 +35,13 @@ void video_backSpace();
 
 void video_tab();
 
+void video_moveCursorLeft();
+void video_moveCursorRight();
+void video_moveCursorUp();
+void video_moveCursorDown();
+
+void video_drawCursor(uint64_t color);
+
 //void video_scrollUp(); funcion para mover la pantalla hacia arriba
 
 #endif
