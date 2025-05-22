@@ -1,6 +1,8 @@
 #include "../include/videoDriver.h"
 #include "../include/font.h"
 
+static int isSpecialChar(char c);
+
 struct vbe_mode_info_structure {
 	uint16_t attributes;		// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
 	uint8_t window_a;			// deprecated
@@ -56,6 +58,11 @@ void video_putPixel(uint32_t color, uint64_t x, uint64_t y) {
 }
 
 void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
+    //veridica caracter especial
+    if(isSpecialChar(c)){
+        return;
+    }
+
     // Obtener el índice del carácter en la fuente
     uint8_t charIndex = (uint8_t)c;
     
@@ -82,6 +89,21 @@ void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
     }
 }
 
+static int isSpecialChar(char c){
+        switch(c) {
+            case '\n':
+                video_newLine();
+                return 1;
+            case '\b':
+                video_backSpace();
+                return 1;
+            case '\t':
+                video_tab();
+                return 1;
+        }
+        return 0;
+}
+
 void video_clearScreen() {
     for(int i=0; i<VBEModeInfo->height; i++) {
         for(int j=0; j<VBEModeInfo->width; j++) {
@@ -94,21 +116,7 @@ void video_clearScreen() {
 
 void video_putString(char *string, uint64_t foregroundColor, uint64_t backgroundColor) {
     while(*string) {
-        switch(*string) {
-            case '\n':
-                video_newLine();
-                break;
-            case '\b':
-                video_backSpace();
-                break;
-            case '\t':
-                video_tab();
-                break;
-            default:
-                //si no es un caracter especial entonces llamo a putchar
-                video_putChar(*string, foregroundColor, backgroundColor);
-                break;
-        }
+        video_putChar(*string, foregroundColor, backgroundColor);
         string++;
     }
 }
