@@ -87,7 +87,7 @@ void test_keyboard() {
     char c;
     video_clearScreen();
     video_putString("Test de teclado - Presione ESC para salir\n", 0xFFFFFF, 0x000000);
-    
+
     while(1) {
         c = keyboard_read_getchar();
         if(c != 0) {
@@ -95,7 +95,8 @@ void test_keyboard() {
                 video_putString("\nSaliendo...\n", 0xFFFFFF, 0x000000);
                 break;
             }
-            video_putChar(c, 0xFFFFFF, 0x000000);
+            char str[2] = {c, 0};
+            video_putString(str, 0xFFFFFF, 0x000000);
         }
     }
 }

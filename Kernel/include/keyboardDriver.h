@@ -12,11 +12,18 @@
 #define CTRL_L_RELEASE 0x9D
 #define CAPSLOCK 0x3A
 #define RELEASE_OFFSET 0x80
-#define KEY_COUNT 59
+#define KEY_COUNT 0x54
 #define KEYBOARD_DATA_PORT 0x60
 #define MAX_SCANCODE 0x58
 #define BUFFER_SIZE 256
 #define REGISTERS_CANT 16
+#define KEY_ARROW_UP     0x80
+#define KEY_ARROW_DOWN   0x81
+#define KEY_ARROW_LEFT   0x82
+#define KEY_ARROW_RIGHT  0x83
+#define SC_DELETE 0x53
+#define KEY_DELETE 0x84
+
 
 
 
