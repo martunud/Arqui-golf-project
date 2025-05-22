@@ -90,6 +90,23 @@ void test_keyboard() {
 
     while(1) {
         c = keyboard_read_getchar();
+        char arrow = keyboard_get_last_arrow();
+        if(arrow) {
+            switch(arrow) {
+                case KEY_ARROW_UP:
+                    video_moveCursor(0, -1);
+                    break;
+                case KEY_ARROW_DOWN:
+                    video_moveCursor(0, 1);
+                    break;
+                case KEY_ARROW_LEFT:
+                    video_moveCursor(-1, 0);
+                    break;
+                case KEY_ARROW_RIGHT:
+                    video_moveCursor(1, 0);
+                    break;
+            }
+        }
         if(c != 0) {
             if(c == 27) {  // ESC
                 video_putString("\nSaliendo...\n", 0xFFFFFF, 0x000000);
