@@ -7,30 +7,23 @@
 #define STDIN 0
 #define STDOUT 1
 
-uint64_t syscall_read(int fd, char * buffer, int count) {
-    // Validate parameters
-    if(fd != STDIN || buffer == NULL || count <= 0) {
+uint64_t syscall_read(int fd, char *buffer, int count) {
+    if (fd != STDIN || buffer == NULL || count <= 0){
         return 0;
     }
 
-    int i = 0;
-    while(i < count) {
-        // keyboard_read_getchar() returns 0 if buffer is empty
-        char c;
-        // Wait until we get a character
-        while((c = keyboard_read_getchar()) == 0);
-        
-        // Store the character
-        buffer[i] = c;
-        i++;
+    uint64_t read = 0;
+    char c;
 
-        // If we read Enter, return immediately
-        if(c == '\n') {
-            return i;
+    while (read < count){
+        c = keyboard_read_getchar();
+        if (c == 0) {
+            break; // No hay mas caracteres
         }
+        buffer[read++] = c;
     }
 
-    return i;
+    return read;
 }
 
 

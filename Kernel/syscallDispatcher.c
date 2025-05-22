@@ -3,7 +3,7 @@
 
 
 // Define type for syscall handlers
-typedef uint64_t (*SyscallHandler)(uint64_t, uint64_t, uint64_t, uint32_t, uint32_t);
+typedef uint64_t (*SyscallHandler)(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t);
 
 // Array of function pointers for syscall handlers
 static SyscallHandler syscallHandlers[] = {
