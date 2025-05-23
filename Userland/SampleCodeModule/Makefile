@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 MODULE=0000-sampleCodeModule.bin
-SOURCES=$(wildcard [^_]*.c)
+SOURCES=$(wildcard [^_]*.c) $(wildcard shell/*.c)
 ASM_SOURCES=asm/syscall.asm
 ASM_OBJECTS=$(ASM_SOURCES:.asm=.o)
 

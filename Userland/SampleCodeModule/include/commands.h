@@ -13,4 +13,8 @@ typedef struct{
 extern const TShellCmd shellCmds[];
 
 
+void helpCmd(void);
+void exitCmd(void);
+void setUserCmd(void);
+
 #endif
