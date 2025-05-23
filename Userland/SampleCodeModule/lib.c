@@ -55,7 +55,6 @@ void strncpy(char *dest, const char *src, size_t n) {
     dest[i] = '\0';
 }
 
-<<<<<<< Updated upstream
 int strcmp(const char *s1, const char *s2) {
     while (*s1 && (*s1 == *s2)) {
         s1++;
@@ -64,10 +63,9 @@ int strcmp(const char *s1, const char *s2) {
     return *(unsigned char *)s1 - *(unsigned char *)s2;
 }
 
-int atoi(char* str){
-=======
+
 int atoi(char *str) {
->>>>>>> Stashed changes
+
     int res = 0;
     int sign = 1;
     int i = 0;
