@@ -1,5 +1,6 @@
 #include "../include/commands.h"
 #include "../include/lib.h"
+#include "../include/shell.h"
 
 const TShellCmd shellCmds[] = {
     {"help", helpCmd, ": Muestra los comandos disponibles\n"},
@@ -22,5 +23,11 @@ void exitCmd(void){
 }
 
 void setUserCmd(void){
-    return;
+    char newName[MAX_USER_LENGTH + 1];
+    
+    printf("%s", "Ingrese el nuevo nombre de usuario: ");
+    readLine(newName, sizeof(newName));
+    
+    strncpy(shellUser, newName, MAX_USER_LENGTH);
+    printf("Nombre de usuario actualizado a: %s\n", shellUser);
 }

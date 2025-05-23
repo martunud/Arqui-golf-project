@@ -3,10 +3,8 @@
 #include "../include/lib.h"
 
 static void shellPrompt();
-static void readLine(char *buf, int maxLen);
 
-const char *shellUser = "usuario";
-
+char shellUser[MAX_USER_LENGTH + 1] = "usuario";
 
 
 void shellLoop(){
@@ -21,6 +19,11 @@ void shellLoop(){
         readLine(buffer, MAX_LINE_LENGTH);
 
         size_t len = strlen(buffer);
+
+        if(len == 0){
+            continue;
+        }
+
         if (len > 0 && buffer[len-1] == '\n') {
             buffer[len-1] = '\0';
         }
@@ -28,7 +31,6 @@ void shellLoop(){
         if (strcmp(buffer, "exit") == 0) {
             return;
         }
-
 
         int found = 0;
 
@@ -46,14 +48,7 @@ void shellLoop(){
     }
 }
 
-static void shellPrompt(){
-
-    printf("%s", "TP-ARQUI-");
-    printf("%s", shellUser);
-    printf("%s", ":~$ ");
-}
-
-static void readLine(char *buf, int maxLen) {
+void readLine(char *buf, int maxLen) {
     int len = 0;
     char c;
 
@@ -75,4 +70,12 @@ static void readLine(char *buf, int maxLen) {
         }
     }
     buf[len] = '\0';
+}
+
+static void shellPrompt(){
+
+    printf("%s", "TP-ARQUI-");
+    printf("%s", shellUser);
+    printf("%s", ":~$ ");
+    
 }
