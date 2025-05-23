@@ -1,5 +1,6 @@
 #include "keyboardDriver.h"
 #include "interrupts.h" 
+#include <stddef.h>
 
 #define SC_UP     0x48
 #define SC_DOWN   0x50
@@ -119,7 +120,7 @@ static int buffer_full() {
 }
 
 static int buffer_empty() {
-    return buffer.readIndex == buffer.writeIndex;
+    return buffer.size == 0;  // Usar size en lugar de comparar índices
 }
 
 char keyboard_read_getchar() {
@@ -173,17 +174,8 @@ uint64_t getRegisters(uint64_t * r) {
     if(!regsLoaded) {
         return 0;
     }
-    
-    // Asegurarse que r no sea NULL
-    if(r == NULL) {
-        return 0;
-    }
-    
-    // Copiar los registros al buffer
-    for(int i = 0; i < REGISTERS_CANT; i++) {
+    for(int i = 0; i < REGS_CANT; i++) {
         r[i] = registers[i];
     }
-    
-    regsLoaded = 0;  // Reset flag después de leer
     return 1;
 }

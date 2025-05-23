@@ -40,21 +40,8 @@ uint64_t syscall_write(int fd, const char * buffer, int count) {
 }
 
 
-uint64_t syscall_getTime(char *buffer) {
-    if (buffer == NULL) return -1;
-    uint8_t hours = getTime(RTC_HOURS);
-    uint8_t minutes = getTime(RTC_MINUTES);
-    uint8_t seconds = getTime(RTC_SECONDS);
-    buffer[0] = '0' + (hours / 10);
-    buffer[1] = '0' + (hours % 10);
-    buffer[2] = ':';
-    buffer[3] = '0' + (minutes / 10);
-    buffer[4] = '0' + (minutes % 10);
-    buffer[5] = ':';
-    buffer[6] = '0' + (seconds / 10);
-    buffer[7] = '0' + (seconds % 10);
-    buffer[8] = '\0';
-    return 8;
+uint64_t syscall_getTime(uint64_t reg) {
+    return getTime(reg);
 }
 
 uint64_t syscall_getRegisters(uint64_t *buffer) {

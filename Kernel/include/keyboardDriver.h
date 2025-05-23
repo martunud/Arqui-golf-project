@@ -17,18 +17,15 @@
 #define KEYBOARD_DATA_PORT 0x60
 #define MAX_SCANCODE 0x58
 #define BUFFER_SIZE 256
-#define REGISTERS_CANT 16
+
+#define REGISTERS_CANT 17
+
 #define KEY_ARROW_UP     0x80
 #define KEY_ARROW_DOWN   0x81
 #define KEY_ARROW_LEFT   0x82
 #define KEY_ARROW_RIGHT  0x83
 #define SC_DELETE 0x53
 #define KEY_DELETE 0x84
-
-/*
- * getRegisters data
- */
-#define REGS_AMOUNT 17
 
 /* Manejador de interrupciones para el teclado, 
  * se ejecuta cuando el teclado genera una interrupcion
