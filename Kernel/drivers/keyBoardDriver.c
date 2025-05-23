@@ -173,8 +173,17 @@ uint64_t getRegisters(uint64_t * r) {
     if(!regsLoaded) {
         return 0;
     }
+    
+    // Asegurarse que r no sea NULL
+    if(r == NULL) {
+        return 0;
+    }
+    
+    // Copiar los registros al buffer
     for(int i = 0; i < REGISTERS_CANT; i++) {
         r[i] = registers[i];
     }
+    
+    regsLoaded = 0;  // Reset flag después de leer
     return 1;
 }

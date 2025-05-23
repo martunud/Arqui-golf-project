@@ -24,9 +24,10 @@
 #define SC_DELETE 0x53
 #define KEY_DELETE 0x84
 
-
-
-
+/*
+ * getRegisters data
+ */
+#define REGS_AMOUNT 17
 
 /* Manejador de interrupciones para el teclado, 
  * se ejecuta cuando el teclado genera una interrupcion
@@ -39,8 +40,8 @@ void keyboard_interrupt_handler();
 char keyboard_read_getchar();
 
 /*
- * Llena un arreglo r con los valores actuales de los registros del procesador
+ * Llena un arreglo buffer con los valores actuales de los registros del procesador
 */
-uint64_t getRegisters(uint64_t * r);
+uint64_t getRegisters(uint64_t *buffer);
 
-#endif // KEYBOARD_DRIVER_H
+#endif 

@@ -2,6 +2,7 @@
 #include <keyboardDriver.h>
 #include <videoDriver.h>
 #include <rtc.h>
+#include <stddef.h>
 
 
 #define STDIN 0
@@ -15,13 +16,12 @@ uint64_t syscall_read(int fd, char *buffer, int count) {
     uint64_t read = 0;
     char c;
 
-    while (read < count){
-        c = keyboard_read_getchar();
-        if (c == 0) {
-            break; // No hay mas caracteres
-        }
-        buffer[read++] = c;
-    }
+    while (read < count) {
+    c = keyboard_read_getchar();
+    if (c == 0) break;
+    buffer[read++] = c;
+    if (c == '\n') break; // Terminar en salto de línea
+}
 
     return read;
 }
@@ -57,6 +57,18 @@ uint64_t syscall_getTime(char *buffer) {
     return 8;
 }
 
-uint64_t syscall_getRegisters(uint64_t * r) {
-    return getRegisters(r);
+uint64_t syscall_getRegisters(uint64_t *buffer) {
+    if (buffer == NULL) {
+        return 0;
+    }
+    
+    uint64_t result = getRegisters(buffer);
+    if(result == 0) {
+        // Si no hay registros cargados, llenar con ceros
+        for(int i = 0; i < REGISTERS_CANT; i++) {
+            buffer[i] = 0;
+        }
+    }
+    
+    return REGISTERS_CANT;  // Retornar cantidad de registros copiados
 }

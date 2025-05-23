@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-/*
- * getRegisters data
- */
-#define REGS_AMOUNT 17
-
 
 /** fd: Un entero que representa el descriptor de archivo desde el cual se leerán los datos.
  * buffer: Un puntero a un búfer en memoria donde se almacenarán los datos leídos
@@ -26,9 +21,13 @@ uint64_t syscall_write(int fd, const char * buffer, int count);
  * arg: un entero que representa el argumento que se le pasará a la función getTime
 */
 uint64_t syscall_getTime(char *buffer);
-/*
- * r: un puntero a un arreglo de 64 bits donde se almacenarán los registros
-*/
-uint64_t syscall_getRegisters(uint64_t * r);
 
-#endif // SYSCALLS_LIB_H
+/*
+ * Obtiene los valores de los registros del sistema
+ * buffer: arreglo donde se guardarán los valores de los registros
+ * Retorna: cantidad de registros copiados o 0 si hubo error
+ * Orden de los registros: RAX, RBX, RCX, RDX, RSI, RDI, RBP, R8-R15, RIP, RSP
+ */
+uint64_t syscall_getRegisters(uint64_t *buffer);
+
+#endif
