@@ -2,6 +2,8 @@ GLOBAL cpuVendor
 GLOBAL getScanCode
 GLOBAL _refreshRegisters
 GLOBAL _getRegisters
+GLOBAL _readTime
+
 
 section .text
 	
@@ -62,7 +64,15 @@ _getRegisters:
     mov rax, registerdata
     ret
 
-
+_readTime:
+    push dx
+    mov dx, 0x70
+    mov al, dil
+    out dx, al
+    xor rax, rax
+    in al, 0x71
+    pop dx
+    ret
 
 section .bss
 registerdata resq 17

@@ -8,7 +8,9 @@ typedef uint64_t (*SyscallHandler)(uint64_t, uint64_t, uint64_t, uint64_t, uint6
 // Array of function pointers for syscall handlers
 static SyscallHandler syscallHandlers[] = {
     (SyscallHandler)syscall_read,   // syscall 0
-    (SyscallHandler)syscall_write   // syscall 1
+    (SyscallHandler)syscall_write,  // syscall 1
+    (SyscallHandler)syscall_getTime, // syscall 2
+    (SyscallHandler)syscall_getRegisters // syscall 3
 };
 
 #define SYSCALLS_COUNT (sizeof(syscallHandlers) / sizeof(syscallHandlers[0]))
