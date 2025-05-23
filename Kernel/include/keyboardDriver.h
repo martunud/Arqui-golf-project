@@ -2,6 +2,7 @@
 #define KEYBOARD_DRIVER_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define ESC 0x1B
 #define BACKSPACE 0x0E
