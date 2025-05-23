@@ -3,8 +3,11 @@
 #include "../include/lib.h"
 
 static void shellPrompt();
+static void readLine(char *buf, int maxLen);
 
 const char *shellUser = "usuario";
+
+
 
 void shellLoop(){
 
@@ -14,11 +17,8 @@ void shellLoop(){
 
     while(1){
         shellPrompt();
-
-        if(fgets(buffer, MAX_LINE_LENGTH, stdin) == NULL){
-            printf("%s", "Error al leer la linea\n");
-            continue;
-        }
+        
+        readLine(buffer, MAX_LINE_LENGTH);
 
         size_t len = strlen(buffer);
         if (len > 0 && buffer[len-1] == '\n') {
@@ -51,4 +51,28 @@ static void shellPrompt(){
     printf("%s", "TP-ARQUI-");
     printf("%s", shellUser);
     printf("%s", ":~$ ");
+}
+
+static void readLine(char *buf, int maxLen) {
+    int len = 0;
+    char c;
+
+    while (1) {
+        c = getchar();          // esto ya bloquea hasta que haya un char
+        if (c == '\n') {
+            putchar('\n');
+            break;
+        }
+        if (c == '\b') {
+            if (len > 0) {
+                len--;
+                // borra un caracter en pantalla
+                putchar('\b'); putchar(' '); putchar('\b');
+            }
+        } else if (len < maxLen-1) {
+            buf[len++] = c;
+            putchar(c);
+        }
+    }
+    buf[len] = '\0';
 }
