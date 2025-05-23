@@ -2,6 +2,7 @@
 #define VIDEO_DRIVER_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define BACKGROUND_COLOR 0x000000
 #define FOREGROUND_COLOR 0xFFFFFF
@@ -42,6 +43,5 @@ void video_moveCursorDown();
 
 void video_drawCursor(uint64_t color);
 
-//void video_scrollUp(); funcion para mover la pantalla hacia arriba
 
 #endif

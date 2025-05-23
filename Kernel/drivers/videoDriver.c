@@ -2,6 +2,7 @@
 #include "../include/font.h"
 
 static int isSpecialChar(char c);
+static void video_scrollUp();
 
 struct vbe_mode_info_structure {
 	uint16_t attributes;		// deprecated, only bit 7 should be of interest to you, and it indicates the mode supports a linear frame buffer.
@@ -123,7 +124,12 @@ void video_putString(char *string, uint64_t foregroundColor, uint64_t background
 
 void video_newLine(){
     cursorX = 0;
-    cursorY += FONT_HEIGHT;
+    if (cursorY + FONT_HEIGHT < VBEModeInfo->height) {
+        cursorY += FONT_HEIGHT;
+    } else {
+        video_scrollUp();
+        cursorY = VBEModeInfo->height - FONT_HEIGHT;
+    }
 }
 
 //Hay que arreglar para cuando borramos el primer caracter de la linea
@@ -216,9 +222,24 @@ void video_drawCursor(uint64_t color) {
     }
 }
 
-// static void clearLine()
 
+static void video_scrollUp() {
+    uint8_t *fb = (uint8_t *)(unsigned long)VBEModeInfo->framebuffer;
+    int row_bytes   = VBEModeInfo->pitch;
+    int n_rows      = VBEModeInfo->height;
+    int move_bytes  = (n_rows - FONT_HEIGHT) * row_bytes; //todas las filas menos la primera
+    uint8_t *src = fb + FONT_HEIGHT * row_bytes; //primer byte debajo de la primera linea
+    uint8_t *dst = fb; //primer byte de la pantalla
 
-// void video_scrollUp(){
+    // haog la copia de las lineas
+    for (int i = 0; i < move_bytes; i++) {
+        dst[i] = src[i];
+    }
 
-// }
+    // borro lo que no iba a entrar 
+    for (int y = n_rows - FONT_HEIGHT; y < n_rows; y++) {
+        for (int x = 0; x < VBEModeInfo->width; x++) {
+            video_putPixel(BACKGROUND_COLOR, x, y);
+        }
+    }
+}
