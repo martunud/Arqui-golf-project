@@ -30,4 +30,11 @@ uint64_t syscall_getTime(char *buffer);
  */
 uint64_t syscall_getRegisters(uint64_t *buffer);
 
+/*
+ * Limpiar la pantalla
+ * Retorna: 1 si se ejecuta correctamente
+ */
+uint64_t syscall_clearScreen();
+
+
 #endif

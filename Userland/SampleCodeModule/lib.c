@@ -288,3 +288,11 @@ int printf(const char *fmt, ...) {
     va_end(args);
     return count;
 }
+
+void clearScreen() {
+    sys_clearScreen();
+}
+
+void getTime(char *buffer) {
+    sys_getTime(buffer);
+}

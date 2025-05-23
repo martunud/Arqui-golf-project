@@ -6,7 +6,9 @@ const TShellCmd shellCmds[] = {
     {"help", helpCmd, ": Muestra los comandos disponibles\n"},
     {"exit", exitCmd, ": Salir del shell\n"},
     {"set-user", setUserCmd, ": Setea el nombre de usuario, con un maximo de 10 caracteres\n"},
-    {NULL, NULL, NULL}
+    {"clear", clearCmd, ": Limpia la pantalla\n"},
+    {"time", timeCmd, ": Muestra la hora actual\n"},
+    {NULL, NULL, NULL}, // Comando vacío para indicar el final de la lista
 };
 
 
@@ -30,4 +32,14 @@ void setUserCmd(void){
     
     strncpy(shellUser, newName, MAX_USER_LENGTH);
     printf("Nombre de usuario actualizado a: %s\n", shellUser);
+}
+
+void clearCmd(void){
+    clearScreen();
+}
+
+void timeCmd(void){
+    char time[TIME_BUFF];
+    getTime(time);
+    printf("Hora del sistema: %s\n", time);
 }

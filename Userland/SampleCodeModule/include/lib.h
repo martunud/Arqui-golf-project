@@ -16,5 +16,6 @@ void strncpy(char *dest, const char *src, size_t n);
 int strcmp(const char *s1, const char *s2);
 int atoi(char* str);
 char *fgets(char *s, int n, int fd);
-
+void clearScreen();
+void getTime(char *buffer);
 #endif

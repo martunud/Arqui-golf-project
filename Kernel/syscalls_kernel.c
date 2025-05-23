@@ -72,3 +72,8 @@ uint64_t syscall_getRegisters(uint64_t *buffer) {
     
     return REGISTERS_CANT;  // Retornar cantidad de registros copiados
 }
+
+uint64_t syscall_clearScreen() {
+    video_clearScreen();
+    return 1;
+}

@@ -3,6 +3,7 @@
 
 #define MAX_LINE_LENGTH 100
 #define MAX_USER_LENGTH 10
+#define TIME_BUFF 9
 #define WELCOME_MESSAGE "Bienvenido a la shell del grupo ??\n"
 #define NOT_FOUND_MESSAGE "Comando no encontrado, escriba help para ver los comandos disponibles\n"
 #define FOREGROUND_COLOR 0xFFFFFF
