@@ -1,4 +1,5 @@
 /* sampleCodeModule.c */
+<<<<<<< Updated upstream
 #include "include/lib.h"
 #include "include/syscall.h"
 
@@ -123,3 +124,27 @@ void test_time() {
     putchar('\n');
 }
 */
+=======
+#include "include/lib.h" 
+
+int main(void) {
+    char str[100];
+    int num;
+    char c;
+
+    printf("Enter a string: ");
+    scanf("%s", str);
+    printf("You entered: %s\n", str);
+
+    printf("Enter a number: ");
+    scanf("%d", &num);
+    printf("You entered: %d\n", num);
+
+    printf("Enter a character: ");
+    scanf("%c", &c);
+    printf("You entered: %c\n", c);
+
+    return 0;
+}
+
+>>>>>>> Stashed changes

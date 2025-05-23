@@ -11,9 +11,9 @@ char getchar(void) {
     char c;
     int n;
 
-    do{
+    do {
         n = sys_read(0, &c, 1);
-    }while (n == 0);
+    } while (n == 0);
 
     return c;
 }
@@ -29,16 +29,14 @@ int strlen(const char *s) {
 char *fgets(char *s, int n, int fd) {
     int i = 0;
     char c;
-    int read;
 
     if (n <= 0) return 0;
 
     while (i < n - 1) {
-        read = sys_read(fd, &c, 1);
-        if (read <= 0) {
-            if (i == 0) return 0; 
-            break;
-        }
+        int read;
+        do {
+            read = sys_read(fd, &c, 1);
+        } while (read == 0);  
 
         s[i++] = c;
         if (c == '\n') break;
@@ -50,13 +48,14 @@ char *fgets(char *s, int n, int fd) {
 
 void strncpy(char *dest, const char *src, size_t n) {
     size_t i = 0;
-    while(src[i] != 0 && i < n) {
+    while (i < n - 1 && src[i] != '\0') {
         dest[i] = src[i];
         i++;
     }
-    dest[i] = 0;
+    dest[i] = '\0';
 }
 
+<<<<<<< Updated upstream
 int strcmp(const char *s1, const char *s2) {
     while (*s1 && (*s1 == *s2)) {
         s1++;
@@ -66,11 +65,30 @@ int strcmp(const char *s1, const char *s2) {
 }
 
 int atoi(char* str){
+=======
+int atoi(char *str) {
+>>>>>>> Stashed changes
     int res = 0;
-    for (int i = 0; str[i] != '\0'; ++i)
-        res = res * 10 + str[i] - '0';
-
-    return res;
+    int sign = 1;
+    int i = 0;
+    
+    while (str[i] == ' ' || str[i] == '\t' || str[i] == '\n') {
+        i++;
+    }
+    
+    if (str[i] == '-') {
+        sign = -1;
+        i++;
+    } else if (str[i] == '+') {
+        i++;
+    }
+    
+    while (str[i] >= '0' && str[i] <= '9') {
+        res = res * 10 + (str[i] - '0');
+        i++;
+    }
+    
+    return sign * res;
 }
 
 int scanf(const char *fmt, ...) {
@@ -80,54 +98,104 @@ int scanf(const char *fmt, ...) {
     char input[BUFFER_SIZE];
     if (!fgets(input, BUFFER_SIZE, stdin)) {
         va_end(args);
-        return 0; 
+        return 0;
     }
 
-    int index = 0;  // índice para recorrer input
-    int count = 0;  // cantidad de valores leídos
+    int index = 0;
+    int count = 0;
 
     for (int i = 0; fmt[i] != '\0'; i++) {
+        if (fmt[i] == ' ' || fmt[i] == '\t' || fmt[i] == '\n') {
+            while (input[index] == ' ' || input[index] == '\t') {
+                index++;
+            }
+            continue;
+        }
+
+        if (input[index] == '\n' || input[index] == '\0') {
+            break;
+        }
+
         if (fmt[i] == '%') {
             i++;
+            if (fmt[i] == '[' && fmt[i + 1] == '^' && fmt[i + 2] == '\\' &&
+                fmt[i + 3] == 'n' && fmt[i + 4] == ']') {
+                i += 4;
+                char *dest = va_arg(args, char *);
+                int start = index;
+                while (input[index] != '\0' && input[index] != '\n') {
+                    index++;
+                }
+                int len = index - start;
+                if (len > 0) {
+                    for (int j = 0; j < len; j++) {
+                        dest[j] = input[start + j];
+                    }
+                    dest[len] = '\0';
+                    count++;
+                }
+                continue;
+            }
+
             switch (fmt[i]) {
                 case 's': {
                     char *dest = va_arg(args, char *);
                     int start = index;
-                    while (input[index] != '\0' && input[index] != '\n' && input[index] != ' ') {
+                    while (input[index] != '\0' && input[index] != '\n') {
                         index++;
                     }
                     int len = index - start;
                     if (len > 0) {
-                        strncpy(dest, input + start, len);
+                        for (int j = 0; j < len; j++) {
+                            dest[j] = input[start + j];
+                        }
                         dest[len] = '\0';
                         count++;
                     }
-                    if (input[index] == ' ') index++;
                     break;
                 }
                 case 'd': {
                     int *dest = va_arg(args, int *);
-                    int start = index;
-                    while (input[index] != '\0' && input[index] != '\n' && input[index] != ' ') {
+                    
+                    while (input[index] == ' ' || input[index] == '\t') {
                         index++;
                     }
+                    
+                    int start = index;
+                    
+                    if (input[index] == '-' || input[index] == '+') {
+                        index++;
+                    }
+                    
+                    if (input[index] < '0' || input[index] > '9') {
+                        break;
+                    }
+                    
+                    while (input[index] >= '0' && input[index] <= '9') {
+                        index++;
+                    }
+                    
                     int len = index - start;
                     if (len > 0) {
                         char temp[32];
                         if (len >= (int)sizeof(temp)) len = sizeof(temp) - 1;
-                        strncpy(temp, input + start, len);
+                        
+                        for (int j = 0; j < len; j++) {
+                            temp[j] = input[start + j];
+                        }
                         temp[len] = '\0';
+                        
                         *dest = atoi(temp);
                         count++;
                     }
-                    if (input[index] == ' ') index++;
+                    
+                    while (input[index] == ' ' || input[index] == '\t') {
+                        index++;
+                    }
                     break;
                 }
                 case 'c': {
                     char *dest = va_arg(args, char *);
-                    // Saltear espacios y saltos de línea previos
-                    while (input[index] == ' ' || input[index] == '\n')
-                        index++;
                     if (input[index] != '\0') {
                         *dest = input[index];
                         index++;
@@ -138,13 +206,22 @@ int scanf(const char *fmt, ...) {
                 default:
                     break;
             }
+        } else {
+            if (input[index] == fmt[i]) {
+                index++;
+            } else {
+                break; 
+            }
+        }
+
+        if (input[index] == '\n' || input[index] == '\0') {
+            break;
         }
     }
 
     va_end(args);
     return count;
 }
-
 
 int printf(const char *fmt, ...) {
     va_list args;
