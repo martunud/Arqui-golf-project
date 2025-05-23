@@ -17,10 +17,11 @@ uint64_t syscall_read(int fd, char * buffer, int count);
  */
 uint64_t syscall_write(int fd, const char * buffer, int count);
 
+
 /*
  * arg: un entero que representa el argumento que se le pasará a la función getTime
 */
-uint64_t syscall_getTime(char *buffer);
+uint64_t syscall_getTime(uint64_t reg);
 
 /*
  * Obtiene los valores de los registros del sistema
@@ -28,6 +29,6 @@ uint64_t syscall_getTime(char *buffer);
  * Retorna: cantidad de registros copiados o 0 si hubo error
  * Orden de los registros: RAX, RBX, RCX, RDX, RSI, RDI, RBP, R8-R15, RIP, RSP
  */
-uint64_t syscall_getRegisters(uint64_t *buffer);
+uint64_t syscall_getRegisters(uint64_t * buffer);
 
 #endif

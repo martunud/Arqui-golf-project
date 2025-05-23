@@ -5,17 +5,18 @@
 
 #define REGISTERS_CANT 17
 
-void test_registers();
+void test_registers(void);
+
 
 //void test_time();
 
 int main(void) {
 
-    //test_registers();
+    test_registers();
 
     //test_time();
 
-    shellLoop();
+    //shellLoop();
 
     // putchar('>');           // Muestra un prompt sencillo
     // char c = getchar();     // Bloquea hasta que pulses una tecla
@@ -56,8 +57,8 @@ int main(void) {
 
 /*
 Crea un buffer para almacenar los 17 registros (REGISTERS_CANT)
-Muestra el mensaje "Press Ctrl+R to capture registers..."
-Cuando el usuario presiona Ctrl+R:
+Muestra el mensaje "Press r to capture registers..."
+Cuando el usuario presiona r:
 La syscall captura el estado actual de los registros
 Devuelve la cantidad de registros capturados
 Si se capturaron registros (count > 0):
@@ -67,51 +68,63 @@ Por ejemplo: RAX: 0x0000000000000001
 Si no se capturaron registros:
 Muestra un mensaje de error
 */
-
-void test_registers() {
+void test_registers(void) {
     uint64_t regs[REGISTERS_CANT];
     
-    putchar('\n');
-    char *msg = "Press Ctrl+R to capture registers...\n";
-    while(*msg) putchar(*msg++);
+    // 1. Imprimir mensaje inicial
+    sys_write(1, "Press 'r' to capture registers (Ctrl+Alt+G to exit QEMU)\n", 55);
     
-    // Llamar a syscall
+    // 2. Esperar la tecla 'r'
+    char c;
+    while(1) {
+        if(sys_read(0, &c, 1) > 0) {
+            if(c == 'r') break;
+        }
+    }
+    
+    // 3. Intentar capturar registros
     int count = sys_getRegisters(regs);
     
+    // 4. Verificar resultado
     if(count > 0) {
-        char *msg2 = "Registers captured:\n";
-        while(*msg2) putchar(*msg2++);
+        char *reg_names[] = {
+            "RAX", "RBX", "RCX", "RDX", 
+            "RSI", "RDI", "RBP", "R8", 
+            "R9", "R10", "R11", "R12", 
+            "R13", "R14", "R15", "RIP", 
+            "RSP"
+        };
         
-        char *reg_names[] = {"RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RBP", 
-                           "R8", "R9", "R10", "R11", "R12", "R13", "R14", "R15",
-                           "RIP", "RSP"};
+        sys_write(1, "\nRegisters captured successfully:\n", 32);
         
-        // Print each register
-        for(int i = 0; i < count; i++) {
-            // Print register name
-            char *name = reg_names[i];
-            while(*name) putchar(*name++);
-            putchar(':');
-            putchar(' ');
+        // Imprimir cada registro
+        char buffer[50];
+        for(int i = 0; i < REGISTERS_CANT; i++) {
+            // Formato manual: "REG: 0xVALUE\n"
+            int pos = 0;
             
-            // Print hex value
-            char hex[17];
-            hex[16] = 0;
-            uint64_t val = regs[i];
+            // Copiar nombre del registro
+            char *name = reg_names[i];
+            while(*name) buffer[pos++] = *name++;
+            
+            // Agregar ": 0x"
+            buffer[pos++] = ':';
+            buffer[pos++] = ' ';
+            buffer[pos++] = '0';
+            buffer[pos++] = 'x';
+            
+            // Convertir valor a hex
             for(int j = 15; j >= 0; j--) {
-                int digit = val & 0xF;
-                hex[j] = digit < 10 ? '0' + digit : 'A' + (digit - 10);
-                val >>= 4;
+                int digit = (regs[i] >> (j * 4)) & 0xF;
+                buffer[pos++] = digit < 10 ? '0' + digit : 'A' + (digit - 10);
             }
-            putchar('0');
-            putchar('x');
-            char *hexPtr = hex;
-            while(*hexPtr) putchar(*hexPtr++);
-            putchar('\n');
+            
+            buffer[pos++] = '\n';
+            
+            sys_write(1, buffer, pos);
         }
     } else {
-        char *error = "No registers captured. Make sure to press Ctrl+R first.\n";
-        while(*error) putchar(*error++);
+        sys_write(1, "\nError: Could not capture registers\n", 34);
     }
 }
 
