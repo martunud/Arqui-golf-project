@@ -19,4 +19,5 @@ char *fgets(char *s, int n, int fd);
 void clearScreen();
 void getTime(char *buffer);
 void setFontScale(int scale);
+int getRegisters(uint64_t *buffer);
 #endif

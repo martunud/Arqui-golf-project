@@ -300,3 +300,7 @@ void getTime(char *buffer) {
 void setFontScale(int scale) {
     sys_setFontScale(scale);
 }
+
+int getRegisters(uint64_t *buffer) {
+    return sys_getRegisters(buffer);
+}
