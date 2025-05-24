@@ -43,4 +43,10 @@ uint64_t syscall_clearScreen();
 */
 uint64_t syscall_beep(int frequency, int duration);
 
+/*
+ * arg: un entero que representa la duración de la pausa en milisegundos
+*/
+uint64_t syscall_sleep(int duration);
+
+
 #endif

@@ -1,6 +1,9 @@
 #include "../include/audioDriver.h"
 
- static void audio_play(uint32_t nFrequence) {
+extern void outb(uint16_t port, uint8_t value);
+extern uint8_t inb(uint16_t port);
+
+void audio_play(uint32_t nFrequence) {
  	uint32_t div;
  	uint8_t tmp;
  
@@ -16,7 +19,7 @@
  }
  
  //make it shut up
- static void audio_stop() {
+void audio_stop() {
  	uint8_t tmp = inb(0x61) & 0xFC;
  	outb(0x61, tmp);
  }

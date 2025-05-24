@@ -4,7 +4,8 @@
 #include <audioDriver.h>
 #include <rtc.h>
 #include <stddef.h>
-
+#include <interrupts.h>
+#include <time.h>
 
 #define STDIN 0
 #define STDOUT 1
@@ -70,5 +71,20 @@ uint64_t syscall_beep(int frequency, int duration) {
     audio_play(frequency);
     syscall_sleep(duration);
     audio_stop();
+    return 1;
+}
+
+uint64_t syscall_sleep(int duration) {
+
+    const uint32_t HZ = 18;
+    uint64_t start     = ticks_elapsed();
+    uint64_t wait_tics = (duration * HZ + 999) / 1000;
+    uint64_t target    = start + wait_tics;
+
+    // cada _hlt() debe habilitar IRQ antes de hlt, por ejemplo:
+    // _hlt() ≡ asm { sti; hlt; ret }
+    while (ticks_elapsed() < target) {
+        _hlt();
+    }
     return 0;
 }

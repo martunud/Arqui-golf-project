@@ -12,11 +12,11 @@ void test_registers(void);
 
 int main(void) {
 
-    test_registers();
+    //test_registers();
 
     //test_time();
 
-    //shellLoop();
+    shellLoop();
 
     // putchar('>');           // Muestra un prompt sencillo
     // char c = getchar();     // Bloquea hasta que pulses una tecla

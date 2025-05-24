@@ -5,6 +5,8 @@ GLOBAL sys_write
 GLOBAL sys_getTime
 GLOBAL sys_getRegisters
 GLOBAL sys_clearScreen
+GLOBAL sys_beep
+GLOBAL sys_sleep
 
 sys_read:
     push rbp
@@ -63,12 +65,21 @@ sys_clearScreen:
 
     mov rsp, rbp
     pop rbp 
-    getRegisters
+    ret
 
 sys_beep:
     push rbp
     mov rbp, rsp
     mov rax, 5
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_sleep:
+    push rbp
+    mov rbp, rsp
+    mov rax, 6
     int 0x80
     mov rsp, rbp
     pop rbp

@@ -3,6 +3,8 @@ GLOBAL getScanCode
 GLOBAL _refreshRegisters
 GLOBAL _getRegisters
 GLOBAL _readTime
+GLOBAL inb
+GLOBAL outb
 
 
 section .text
@@ -73,7 +75,7 @@ _readTime:
     pop dx
     ret
 
-intb:
+inb:
     push rbp
     mov rbp, rsp
 
