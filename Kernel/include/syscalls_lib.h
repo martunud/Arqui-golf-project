@@ -48,5 +48,5 @@ uint64_t syscall_beep(int frequency, int duration);
 */
 uint64_t syscall_sleep(int duration);
 
-
+uint64_t syscall_setFontScale(int scale);
 #endif

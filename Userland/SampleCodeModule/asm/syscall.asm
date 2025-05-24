@@ -7,6 +7,7 @@ GLOBAL sys_getRegisters
 GLOBAL sys_clearScreen
 GLOBAL sys_beep
 GLOBAL sys_sleep
+GLOBAL sys_setFontScale
 
 sys_read:
     push rbp
@@ -80,6 +81,15 @@ sys_sleep:
     push rbp
     mov rbp, rsp
     mov rax, 6
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_setFontScale:
+    push rbp
+    mov rbp, rsp
+    mov rax, 7
     int 0x80
     mov rsp, rbp
     pop rbp

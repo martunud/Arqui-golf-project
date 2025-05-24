@@ -8,6 +8,7 @@ const TShellCmd shellCmds[] = {
     {"set-user", setUserCmd, ": Setea el nombre de usuario, con un maximo de 10 caracteres\n"},
     {"clear", clearCmd, ": Limpia la pantalla\n"},
     {"time", timeCmd, ": Muestra la hora actual\n"},
+    {"font-size", fontSizeCmd, ": Cambia el tamano de la fuente\n"},
     {NULL, NULL, NULL}, // Comando vacío para indicar el final de la lista
 };
 
@@ -42,4 +43,18 @@ void timeCmd(void){
     char time[TIME_BUFF];
     getTime(time);
     printf("Hora del sistema: %s\n", time);
+}
+
+void fontSizeCmd(void){
+    int size;
+    printf("Ingrese el nuevo tamaño de la fuente (1-5): ");
+    scanf("%d", &size);
+    
+    if(size < 1 || size > 5){
+        printf("Tamaño inválido. Debe estar entre 1 y 5.\n");
+        return;
+    }
+    
+    setFontScale(size);
+    printf("Tamaño de fuente cambiado a: %d\n", size);
 }

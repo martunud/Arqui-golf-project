@@ -88,3 +88,12 @@ uint64_t syscall_sleep(int duration) {
     }
     return 0;
 }
+
+uint64_t syscall_setFontScale(int scale) {
+    if (scale < 1 || scale > 5) {
+        return 0; // Tamaño inválido
+    }
+    
+    setFontScale(scale);
+    return 1; // Éxito
+}

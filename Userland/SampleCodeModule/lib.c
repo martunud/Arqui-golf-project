@@ -296,3 +296,7 @@ void clearScreen() {
 void getTime(char *buffer) {
     sys_getTime(buffer);
 }
+
+void setFontScale(int scale) {
+    sys_setFontScale(scale);
+}

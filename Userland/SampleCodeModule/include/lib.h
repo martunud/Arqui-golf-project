@@ -18,4 +18,5 @@ int atoi(char* str);
 char *fgets(char *s, int n, int fd);
 void clearScreen();
 void getTime(char *buffer);
+void setFontScale(int scale);
 #endif
