@@ -37,5 +37,10 @@ uint64_t syscall_getRegisters(uint64_t * buffer);
  */
 uint64_t syscall_clearScreen();
 
+/*
+ * arg: un entero que representa la frecuencia y el tiempo de la señal
+ * duration: tiempo en milisegundos
+*/
+uint64_t syscall_beep(int frequency, int duration);
 
 #endif

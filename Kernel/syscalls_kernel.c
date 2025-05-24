@@ -1,6 +1,7 @@
 #include <syscalls_lib.h>
 #include <keyboardDriver.h>
 #include <videoDriver.h>
+#include <audioDriver.h>
 #include <rtc.h>
 #include <stddef.h>
 
@@ -63,4 +64,11 @@ uint64_t syscall_getRegisters(uint64_t *buffer) {
 uint64_t syscall_clearScreen() {
     video_clearScreen();
     return 1;
+}
+
+uint64_t syscall_beep(int frequency, int duration) {
+    audio_play(frequency);
+    syscall_sleep(duration);
+    audio_stop();
+    return 0;
 }

@@ -73,5 +73,28 @@ _readTime:
     pop dx
     ret
 
+intb:
+    push rbp
+    mov rbp, rsp
+
+    in al, dx
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+outb:
+    push rbp
+    mov rbp, rsp
+
+    mov dx, di
+    mov al, sil
+    out dx, al    
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+
 section .bss
 _registerdata: resq 17  ; Reserva espacio para 17 registros

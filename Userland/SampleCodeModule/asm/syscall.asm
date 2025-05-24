@@ -65,3 +65,11 @@ sys_clearScreen:
     pop rbp 
     getRegisters
 
+sys_beep:
+    push rbp
+    mov rbp, rsp
+    mov rax, 5
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret

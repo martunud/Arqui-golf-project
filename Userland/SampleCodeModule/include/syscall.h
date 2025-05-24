@@ -9,5 +9,6 @@ uint64_t sys_getRegisters(uint64_t *buffer);
 uint64_t sys_getTime(char *buffer);
 uint64_t sys_clearScreen();
 uint64_t sys_setFontScale(int scale);
+uint64_t sys_beep(int frequency, int duration);
 
 #endif
