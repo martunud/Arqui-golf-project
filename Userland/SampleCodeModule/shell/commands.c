@@ -47,14 +47,15 @@ void timeCmd(void){
 
 void fontSizeCmd(void){
     int size;
-    printf("Ingrese el nuevo tamaño de la fuente (1-5): ");
+    printf("Ingrese el nuevo tamaño de la fuente (1-3): ");
     scanf("%d", &size);
     
-    if(size < 1 || size > 5){
-        printf("Tamaño inválido. Debe estar entre 1 y 5.\n");
+    if(size < 1 || size > 3){
+        printf("Tamaño inválido. Debe estar entre 1 y 3.\n");
         return;
     }
     
     setFontScale(size);
+    clearCmd();
     printf("Tamaño de fuente cambiado a: %d\n", size);
 }
