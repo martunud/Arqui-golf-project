@@ -174,7 +174,7 @@ uint64_t getRegisters(uint64_t * r) {
     if(!regsLoaded) {
         return 0;
     }
-    for(int i = 0; i < REGS_CANT; i++) {
+    for(int i = 0; i < REGISTERS_CANT; i++) {
         r[i] = registers[i];
     }
     return 1;

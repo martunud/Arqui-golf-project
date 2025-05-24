@@ -1,7 +1,7 @@
 #include "../include/shell.h"
 #include "../include/commands.h"
 #include "../include/lib.h"
-
+#include "../include/syscall.h"
 static void shellPrompt();
 
 char shellUser[MAX_USER_LENGTH + 1] = "usuario";
@@ -63,10 +63,12 @@ void readLine(char *buf, int maxLen) {
                 len--;
                 // borra un caracter en pantalla
                 putchar('\b'); putchar(' '); putchar('\b');
+                sys_beep(440, 100);
             }
         } else if (len < maxLen-1) {
             buf[len++] = c;
             putchar(c);
+            sys_beep(440, 100);
         }
     }
     buf[len] = '\0';
