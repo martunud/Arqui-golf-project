@@ -58,6 +58,7 @@ uint64_t syscall_getRegisters(uint64_t *buffer) {
         for(int i = 0; i < REGISTERS_CANT; i++) {
             buffer[i] = 0;
         }
+        return 0;
     }
     
     return REGISTERS_CANT;  // Retornar cantidad de registros copiados

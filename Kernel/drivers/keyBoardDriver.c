@@ -66,7 +66,7 @@ void keyboard_interrupt_handler() {
 
     char cAscii = scToAscii(scancode);        
 
-    if(activeCtrl && (cAscii == 'R' || cAscii == 'r')) {
+    if((cAscii == 'J' || cAscii == 'j')) {
         regsLoaded = 1;
         refreshRegisters();
     } else if (cAscii != 0) {
