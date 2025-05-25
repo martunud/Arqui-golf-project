@@ -66,6 +66,9 @@ _getRegisters:
     ret
 
 _readTime:
+    push rbp
+    mov rbp, rsp
+
     push dx
     mov dx, 0x70
     mov al, dil
@@ -73,6 +76,10 @@ _readTime:
     xor rax, rax
     in al, 0x71
     pop dx
+
+    mov rsp, rbp
+    pop rbp
+    ret
     ret
 
 inb:

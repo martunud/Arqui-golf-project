@@ -43,7 +43,8 @@ uint64_t syscall_write(int fd, const char * buffer, int count) {
 
 
 uint64_t syscall_getTime(uint64_t reg) {
-    return getTime(reg);
+    uint8_t t = getTime((uint8_t)reg);
+    return (uint64_t)t;
 }
 
 uint64_t syscall_getRegisters(uint64_t *buffer) {
@@ -81,8 +82,7 @@ uint64_t syscall_sleep(int duration) {
     uint64_t wait_tics = (duration * HZ + 999) / 1000;
     uint64_t target    = start + wait_tics;
 
-    // cada _hlt() debe habilitar IRQ antes de hlt, por ejemplo:
-    // _hlt() ≡ asm { sti; hlt; ret }
+
     while (ticks_elapsed() < target) {
         _hlt();
     }

@@ -32,7 +32,6 @@ sys_getTime:
     mov rbp, rsp
     
     mov rax, 2          ; syscall number for getTime
-    mov rdi, [rbp + 16] ; buffer address
     
     int 0x80
     
