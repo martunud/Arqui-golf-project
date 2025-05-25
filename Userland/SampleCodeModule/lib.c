@@ -273,6 +273,22 @@ int printf(const char *fmt, ...) {
                     count++;
                     break;
                 }
+                case 'l':
+                    if (fmt[i+1]=='l' && fmt[i+2]=='x') {
+                        unsigned long long v = va_arg(args, unsigned long long);
+                        char buf[17];
+                        buf[16] = '\0';
+                        for (int j = 15; j >= 0; j--) {
+                            buf[j] = "0123456789ABCDEF"[v & 0xF];
+                            v >>= 4;
+                        }
+                        char *p = buf;
+                        while (*p=='0' && *(p+1)) p++;
+                        printf("%s", p);
+                        count += strlen(p);
+                        i += 2;  // saltamos los dos 'l' extras y la 'x'
+                        break;
+                    }
                 default:
                     putchar('%');
                     putchar(fmt[i]);
