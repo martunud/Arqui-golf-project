@@ -1,6 +1,5 @@
-GLOBAL _invalidOp
-
-SECTION .text
+global _invalidOp
 
 _invalidOp:
-    ud2
+    ud2         ; Instrucción ilegal para generar una excepción de opcode inválido
+    

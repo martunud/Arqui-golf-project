@@ -18,7 +18,7 @@ const TShellCmd shellCmds[] = {
     {"time", timeCmd, ": Muestra la hora actual\n"},
     {"font-size", fontSizeCmd, ": Cambia el tamano de la fuente\n"},
     {"regs", regsCmd, ": Muestra el estado de los registros (Presione CTRL R para actualizar)\n"},
-    {"exceptions", exceptionCmd, ": Testear excepciones\n"},
+    {"exceptions", exceptionCmd, ": Testear excepciones. Ingrese: exceptions [zero/invalidOpcode] para testear alguna operacion\n"},
     {NULL, NULL, NULL}, // Comando vacío para indicar el final de la lista
 };
 
@@ -147,10 +147,11 @@ int exceptionCmd(int argc, char * argv[]) {
         printf("c: %d\n", c); // Esta línea no se ejecutará si hay excepción
     
     }
-    else if (strcmp(argv[1], "invalidOpcode") == 0) {
-        _invalidOp();    // Provoca opcode inválido
-        
-    }
+else if (strcmp(argv[1], "invalidOpcode") == 0) {
+    printf("Ejecutando invalidOpcode...\n");
+    _invalidOp();    // Provoca opcode inválido
+}
+
     else {
         printf("Error: tipo de excepcion invalido.\nIngrese exceptions [zero, invalidOpcode] para testear alguna operacion\n");
         return ERROR;
