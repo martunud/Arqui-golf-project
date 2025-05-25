@@ -145,9 +145,11 @@ int exceptionCmd(int argc, char * argv[]) {
         int b = 0;
         int c = a / b;   // Provoca división por cero
         printf("c: %d\n", c); // Esta línea no se ejecutará si hay excepción
+    
     }
     else if (strcmp(argv[1], "invalidOpcode") == 0) {
         _invalidOp();    // Provoca opcode inválido
+        
     }
     else {
         printf("Error: tipo de excepcion invalido.\nIngrese exceptions [zero, invalidOpcode] para testear alguna operacion\n");

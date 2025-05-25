@@ -7,6 +7,8 @@ static void zero_division();
 
 static char * regs[] = {"RAX","RBX","RCX","RDX","RSI","RDI","RBP","RSP", "R8","R9","R10","R11","R12","R13","R14","R15", "RIP", "RFLAGS"};
 
+static void video_printRegister(char *regName, uint64_t regValue);
+static void video_printRegisters(uint64_t exceptionRegisters[18]);
 
 static int exceptionShown = 0;
 
