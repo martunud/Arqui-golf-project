@@ -7,6 +7,12 @@
 #define BACKGROUND_COLOR 0x000000
 #define FOREGROUND_COLOR 0xFFFFFF
 
+#define ERROR_FG_COLOR 0xFF0000   // Rojo (RGB)
+#define ERROR_BG_COLOR 0x000000   // Negro
+#define REG_NAME_COLOR 0xFFFFFF    // Blanco
+#define REG_VALUE_COLOR 0x00FF00   // Verde
+#define REG_BG_COLOR 0x000000      // Negro
+
 
 typedef struct vbe_mode_info_structure *VBEinfoPtr;
  
@@ -44,5 +50,7 @@ void video_moveCursorDown();
 void video_drawCursor(uint64_t color);
 
 void setFontScale(uint64_t scale);
+
+void video_printError(const char *errorMsg);
 
 #endif

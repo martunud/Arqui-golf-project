@@ -5,44 +5,21 @@
 static void shellPrompt();
 
 char shellUser[MAX_USER_LENGTH + 1] = "usuario";
-
-
-void shellLoop(){
-
+void shellLoop() {
     char buffer[MAX_LINE_LENGTH];
 
     printf("%s", WELCOME_MESSAGE);
 
-    while(1){
+    while (1) {
         shellPrompt();
-        
         readLine(buffer, MAX_LINE_LENGTH);
 
         size_t len = strlen(buffer);
+        if (len == 0) continue;
 
-        if(len == 0){
-            continue;
-        }
+        if (buffer[len - 1] == '\n') buffer[len - 1] = '\0';
 
-        if (len > 0 && buffer[len-1] == '\n') {
-            buffer[len-1] = '\0';
-        }
-
-        if (strcmp(buffer, "exit") == 0) {
-            return;
-        }
-
-        int found = 0;
-
-        for(int i = 0; shellCmds[i].name; i++){
-            if(strcmp(buffer, shellCmds[i].name) == 0){
-                shellCmds[i].function();
-                found = 1;
-                break;
-            }
-        }
-
-        if(!found){
+        if (CommandParse(buffer) == ERROR) {
             printf("%s", NOT_FOUND_MESSAGE);
         }
     }

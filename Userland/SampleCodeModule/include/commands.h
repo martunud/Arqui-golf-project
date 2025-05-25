@@ -2,9 +2,13 @@
 #define COMMANDS_H
 
 #define REGISTERS_CANT 17
+#define MAX_ARGS 3
 
+#define OK 0
+#define ERROR -1
+#define EXIT_CODE 1
 
-typedef void (*cmd_fn)(void);
+typedef int (*cmd_fn)(int argc, char *argv[]);
 
 
 typedef struct{
@@ -15,11 +19,16 @@ typedef struct{
 
 extern const TShellCmd shellCmds[];
 
-void helpCmd(void);
-void exitCmd(void);
-void setUserCmd(void);
-void clearCmd(void);
-void timeCmd(void);
-void fontSizeCmd(void);
-void regsCmd(void);
+int helpCmd(int argc, char *argv[]);
+int exitCmd(int argc, char *argv[]);
+int setUserCmd(int argc, char *argv[]);
+int clearCmd(int argc, char *argv[]);
+int timeCmd(int argc, char *argv[]);
+int fontSizeCmd(int argc, char *argv[]);
+int regsCmd(int argc, char *argv[]);
+int fillCommandAndArgs(char *args[], char *input);  // declaración de la función
+int CommandParse(char *commandInput);
+int exceptionCmd(int argc, char *argv[]);
+
+
 #endif

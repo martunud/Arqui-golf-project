@@ -219,3 +219,9 @@ static void video_scrollUp() {
         }
     }
 }
+
+void video_printError(const char *errorMsg) {
+    video_putString((char *)errorMsg, ERROR_FG_COLOR, ERROR_BG_COLOR);
+
+}
+
