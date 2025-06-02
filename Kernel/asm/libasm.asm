@@ -5,6 +5,8 @@ GLOBAL _getRegisters
 GLOBAL _readTime
 GLOBAL inb
 GLOBAL outb
+global refreshRegistersSnapshot
+
 
 
 section .text
@@ -107,3 +109,15 @@ outb:
 
 section .bss
 _registerdata: resq 17  ; Reserva espacio para 17 registros
+
+section .data
+    registers_snapshot: times 18 dq 0
+
+section .text
+refreshRegistersSnapshot:
+    ; Ejemplo de cómo se copia RAX, RBX, RCX, ...
+    mov [rel registers_snapshot + 0*8], rax
+    mov [rel registers_snapshot + 1*8], rbx
+    mov [rel registers_snapshot + 2*8], rcx
+    ; (continúa con el resto: rdx, rsi, rdi, rbp, rsp, r8…r15, rip, rflags)
+    ret

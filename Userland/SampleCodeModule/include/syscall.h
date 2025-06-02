@@ -11,4 +11,6 @@ uint64_t sys_clearScreen();
 uint64_t sys_setFontScale(int scale);
 uint64_t sys_sleep(int duration);
 uint64_t sys_beep(int frequency, int duration);
+uint64_t sys_takeRegistersSnapshot(uint64_t *regs);
+
 #endif

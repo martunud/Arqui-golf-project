@@ -10,6 +10,9 @@
 #define STDIN 0
 #define STDOUT 1
 
+uint64_t registers_snapshot[REGISTERS_CANT];
+int snapshotTaken = 0;
+
 uint64_t syscall_read(int fd, char *buffer, int count) {
     if (fd != STDIN || buffer == NULL || count <= 0){
         return 0;
@@ -47,21 +50,15 @@ uint64_t syscall_getTime(uint64_t reg) {
     return (uint64_t)t;
 }
 
+
 uint64_t syscall_getRegisters(uint64_t *buffer) {
-    if (buffer == NULL) {
+    if (!snapshotTaken || buffer == 0) {
         return 0;
     }
-    
-    uint64_t result = getRegisters(buffer);
-    if(result == 0) {
-        // Si no hay registros cargados, llenar con ceros
-        for(int i = 0; i < REGISTERS_CANT; i++) {
-            buffer[i] = 0;
-        }
-        return 0;
+    for (int i = 0; i < REGISTERS_CANT; i++) {
+        buffer[i] = registers_snapshot[i];
     }
-    
-    return REGISTERS_CANT;  // Retornar cantidad de registros copiados
+    return REGISTERS_CANT;
 }
 
 uint64_t syscall_clearScreen() {
@@ -97,4 +94,12 @@ uint64_t syscall_setFontScale(int scale) {
     
     setFontScale(scale);
     return 1; // Éxito
+}
+
+uint64_t syscall_takeRegistersSnapshot(uint64_t *regs) {
+    if (regs == NULL) return 0;
+    for (int i = 0; i < REGISTERS_CANT; i++)
+        registers_snapshot[i] = regs[i];
+    snapshotTaken = 1;
+    return 1;
 }

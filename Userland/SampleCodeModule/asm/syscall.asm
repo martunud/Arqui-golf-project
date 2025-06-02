@@ -8,6 +8,8 @@ GLOBAL sys_clearScreen
 GLOBAL sys_beep
 GLOBAL sys_sleep
 GLOBAL sys_setFontScale
+GLOBAL sys_takeRegistersSnapshot
+
 
 sys_read:
     push rbp
@@ -83,6 +85,16 @@ sys_setFontScale:
     push rbp
     mov rbp, rsp
     mov rax, 7
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_takeRegistersSnapshot:
+    push rbp
+    mov rbp, rsp
+    mov rax, 8
+    mov rdi, rdi      ; Primer argumento: puntero al buffer de registros
     int 0x80
     mov rsp, rbp
     pop rbp

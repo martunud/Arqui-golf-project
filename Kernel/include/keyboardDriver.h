@@ -18,7 +18,7 @@
 #define MAX_SCANCODE 0x58
 #define BUFFER_SIZE 256
 
-#define REGISTERS_CANT 17
+#define REGISTERS_CANT 18
 
 #define KEY_ARROW_UP     0x80
 #define KEY_ARROW_DOWN   0x81
@@ -40,6 +40,8 @@ char keyboard_read_getchar();
 /*
  * Llena un arreglo buffer con los valores actuales de los registros del procesador
 */
-uint64_t getRegisters(uint64_t *buffer);
+void refreshRegistersSnapshot(void);
+uint64_t getRegisters(uint64_t * r);
+void setSnapshotTaken(void);
 
 #endif 

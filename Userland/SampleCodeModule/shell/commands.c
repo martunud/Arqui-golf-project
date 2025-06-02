@@ -1,14 +1,13 @@
 #include "../include/commands.h"
 #include "../include/lib.h"
 #include "../include/shell.h"
+#include "../include/syscall.h"
 
 extern void _invalidOp();
 
-
 static const char * regNames[REGISTERS_CANT] = {
-        "RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RBP", "R8 ", "R9 ", "R10", "R11", "R12", "R13", "R14", "R15", "RIP", "RSP"
+    "RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RBP", "R8 ", "R9 ", "R10", "R11", "R12", "R13", "R14", "R15", "RIP", "RSP", "RFLAGS"
 };
-
 
 const TShellCmd shellCmds[] = {
     {"help", helpCmd, ": Muestra los comandos disponibles\n"},
@@ -17,11 +16,10 @@ const TShellCmd shellCmds[] = {
     {"clear", clearCmd, ": Limpia la pantalla\n"},
     {"time", timeCmd, ": Muestra la hora actual\n"},
     {"font-size", fontSizeCmd, ": Cambia el tamano de la fuente\n"},
-    {"regs", regsCmd, ": Muestra el estado de los registros (Presione CTRL R para actualizar)\n"},
+    {"regs", regsCmd, ": Muestra el estado de los registros (Presione CTRL+R para actualizar)\n"},
     {"exceptions", exceptionCmd, ": Testear excepciones. Ingrese: exceptions [zero/invalidOpcode] para testear alguna operacion\n"},
     {NULL, NULL, NULL}, // Comando vacío para indicar el final de la lista
 };
-
 
 int helpCmd(int argc, char *argv[]){
     printf("%s", "Comandos disponibles:\n");
@@ -80,24 +78,30 @@ int fontSizeCmd(int argc, char *argv[]){
 int regsCmd(int argc, char *argv[]) {
     uint64_t regs[REGISTERS_CANT];
     int ok = getRegisters(regs);
-
     if (!ok) {
-        printf("[inforeg] Registers are not updated. Use CTRL + R to update.\n");
+        printf("[inforeg] No se pudieron leer/actualizar los registros.\n");
         return ERROR;
     }
-
-    for (int i = 0; i < REGISTERS_CANT; i += 2) {
-        printf("%s: %llx\t", regNames[i], (unsigned long long)regs[i]);
-
-        if (i < (REGISTERS_CANT - 1)) {
-            printf("%s: %llx\n", regNames[i + 1], (unsigned long long)regs[i + 1]);
+    for (int i = 0; i < REGISTERS_CANT - 1; i += 2) {
+        printf("%s: ", regNames[i]);
+        printHex64(regs[i]);
+        printf("\t");
+        if (i + 1 < REGISTERS_CANT - 1) {
+            printf("%s: ", regNames[i + 1]);
+            printHex64(regs[i + 1]);
+            printf("\n");
         } else {
             putchar('\n');
-            printf("Press CTRL + R to refresh registers.\n");
         }
     }
+    // Imprimir RFLAGS al final
+    printf("RFLAGS: ");
+    printHex64(regs[REGISTERS_CANT - 1]);
+    printf("\nPresione CTRL+R para refrescar los registros.\n");
     return OK;
 }
+
+
 int CommandParse(char *commandInput){
     if(commandInput == NULL)
         return ERROR;
@@ -147,11 +151,10 @@ int exceptionCmd(int argc, char * argv[]) {
         printf("c: %d\n", c); // Esta línea no se ejecutará si hay excepción
     
     }
-else if (strcmp(argv[1], "invalidOpcode") == 0) {
-    printf("Ejecutando invalidOpcode...\n");
-    _invalidOp();    // Provoca opcode inválido
-}
-
+    else if (strcmp(argv[1], "invalidOpcode") == 0) {
+        printf("Ejecutando invalidOpcode...\n");
+        _invalidOp();    // Provoca opcode inválido
+    }
     else {
         printf("Error: tipo de excepcion invalido.\nIngrese exceptions [zero, invalidOpcode] para testear alguna operacion\n");
         return ERROR;

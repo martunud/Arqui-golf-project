@@ -1,7 +1,14 @@
-#include "lib.h"
+#include "include/lib.h"
 #include "include/syscall.h"
 #include <stdarg.h>
 
+extern void save_registers_snapshot(uint64_t *buffer);
+
+void takeRegistersSnapshot(void) {
+    uint64_t regs[REGISTERS_CANT];
+    save_registers_snapshot(regs);
+    sys_takeRegistersSnapshot(regs);
+}
 
 void putchar(char c) {
     sys_write(1, &c, 1);
@@ -333,3 +340,15 @@ void setFontScale(int scale) {
 int getRegisters(uint64_t *buffer) {
     return sys_getRegisters(buffer);
 }
+
+void printHex64(uint64_t value) {
+    char hex[17];
+    for (int i = 15; i >= 0; i--) {
+        int digit = value & 0xF;
+        hex[i] = (digit < 10) ? ('0' + digit) : ('A' + digit - 10);
+        value >>= 4;
+    }
+    hex[16] = '\0';
+    printf("0x%s", hex);
+}
+

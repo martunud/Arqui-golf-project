@@ -8,12 +8,13 @@
 #define SC_RIGHT  0x4D
 #define SC_SPACE  0x39
 #define SC_TAB    0x0F
+#define CTRL_R_CODE 0x12
 
 extern uint8_t getScanCode();
 extern void _refreshRegisters(void);
 extern uint64_t* _getRegisters();
+extern void refreshRegistersSnapshot(void);
 
-void refreshRegisters(void);
 static int buffer_empty();
 static int buffer_full();
 static char buffer_pop();
@@ -55,9 +56,8 @@ static volatile uint8_t activeShift = 0;               //Shift presionado
 static volatile uint8_t activeCapsLock = 0;            //CapsLock presionado
 static volatile uint8_t activeCtrl = 0;                //Ctrl presionado
 
-static volatile uint64_t registers[REGISTERS_CANT];   //Arreglo de registros 
-
-static volatile uint8_t regsLoaded = 0;           //Flag para saber si se cargaron los registros
+static volatile uint64_t registers_snapshot[REGISTERS_CANT];   // Snapshot de registros 
+static volatile uint8_t snapshotTaken = 0;           // Flag para saber si se tomó el snapshot
 
 
 void keyboard_interrupt_handler() {
@@ -66,15 +66,17 @@ void keyboard_interrupt_handler() {
 
     char cAscii = scToAscii(scancode);        
 
-    if((cAscii == 'J' || cAscii == 'j')) {
-        regsLoaded = 1;
-        refreshRegisters();
+    // Detectar Ctrl+R
+    if (activeCtrl && (cAscii == 'r' || cAscii == 'R')) {
+        buffer_push(CTRL_R_CODE); // Poner valor especial en el buffer
     } else if (cAscii != 0) {
         buffer_push(cAscii);
     }
 }
 
-
+void setSnapshotTaken(void) {
+    snapshotTaken = 1;
+}
 
 static void updateFlags(uint8_t scancode) {
     if (scancode == CTRL_L) {
@@ -161,21 +163,12 @@ static char scToAscii(uint8_t scancode) {
     return c;
 }
 
-
-void refreshRegisters() {
-    _refreshRegisters();
-    uint64_t * r = _getRegisters();
-    for(int i = 0; i < REGISTERS_CANT; i++) {
-        registers[i] = r[i];
-    }
-}
-
 uint64_t getRegisters(uint64_t * r) {
-    if(!regsLoaded) {
+    if(!snapshotTaken) {
         return 0;
     }
     for(int i = 0; i < REGISTERS_CANT; i++) {
-        r[i] = registers[i];
+        r[i] = registers_snapshot[i];
     }
     return 1;
 }

@@ -3,6 +3,7 @@
 
 #define BUFFER_SIZE 256
 #define stdin 0 
+#define REGISTERS_CANT 18
 
 #define RTC_SECONDS 0x00
 #define RTC_MINUTES 0x02
@@ -27,4 +28,8 @@ void clearScreen();
 void getTime(char *buffer);
 void setFontScale(int scale);
 int getRegisters(uint64_t *buffer);
+void save_registers_snapshot(uint64_t *buffer);
+void takeRegistersSnapshot(void);
+void printHex64(uint64_t value);
+
 #endif

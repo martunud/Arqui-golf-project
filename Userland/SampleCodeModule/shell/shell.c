@@ -30,7 +30,7 @@ void readLine(char *buf, int maxLen) {
     char c;
 
     while (1) {
-        c = getchar();          // esto ya bloquea hasta que haya un char
+        c = getchar();
         if (c == '\n') {
             putchar('\n');
             break;
@@ -38,12 +38,14 @@ void readLine(char *buf, int maxLen) {
         if (c == '\b') {
             if (len > 0) {
                 len--;
-                // borra un caracter en pantalla
                 putchar('\b'); putchar(' '); putchar('\b');
             }
             else{
                 sys_beep(500, 100);
             }
+        } else if ((unsigned char)c == 0x12) { // CTRL+R especial
+            takeRegistersSnapshot();
+            printf("\n[Snapshot de registros tomado]\n");
         } else if (len < maxLen-1) {
             buf[len++] = c;
             putchar(c);
@@ -53,9 +55,7 @@ void readLine(char *buf, int maxLen) {
 }
 
 static void shellPrompt(){
-
     printf("%s", "TP-ARQUI-");
     printf("%s", shellUser);
     printf("%s", ":~$ ");
-    
 }

@@ -3,8 +3,6 @@
 #include "include/lib.h"
 #include "include/syscall.h"
 
-#define REGISTERS_CANT 17
-
 void test_registers(void);
 
 
