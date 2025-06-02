@@ -25,6 +25,8 @@ int strcmp(const char *s1, const char *s2);
 int atoi(char* str);
 char *fgets(char *s, int n, int fd);
 void clearScreen();
+int sprintf(char *str, const char *fmt, ...);
+
 void getTime(char *buffer);
 void setFontScale(int scale);
 int getRegisters(uint64_t *buffer);
@@ -32,4 +34,7 @@ void save_registers_snapshot(uint64_t *buffer);
 void takeRegistersSnapshot(void);
 void printHex64(uint64_t value);
 
+void video_putPixel(int x, int y, uint32_t color);
+void video_putChar(char c, uint32_t fg, uint32_t bg);
+void video_clearScreenColor(uint32_t color); // Nueva función para limpiar con color
 #endif

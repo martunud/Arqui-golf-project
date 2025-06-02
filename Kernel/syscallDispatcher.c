@@ -12,7 +12,10 @@ static SyscallHandler syscallHandlers[] = {
     (SyscallHandler)syscall_beep, // syscall 5
     (SyscallHandler)syscall_sleep, // syscall 6
     (SyscallHandler)syscall_setFontScale, // syscall 7
-    (SyscallHandler)syscall_takeRegistersSnapshot // syscall 8
+    (SyscallHandler)syscall_takeRegistersSnapshot, // syscall 8
+    (SyscallHandler)syscall_video_clearScreenColor, // syscall 9
+    (SyscallHandler)syscall_video_putPixel, // syscall 10
+    (SyscallHandler)syscall_video_putChar, // syscall 11
 };
 
 #define SYSCALLS_COUNT (sizeof(syscallHandlers) / sizeof(syscallHandlers[0]))

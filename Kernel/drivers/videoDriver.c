@@ -41,6 +41,8 @@ struct vbe_mode_info_structure {
 } __attribute__ ((packed));
 
 VBEinfoPtr VBEModeInfo = (VBEinfoPtr) 0x0000000000005C00;
+#define SCREEN_WIDTH  (VBEModeInfo->width)
+#define SCREEN_HEIGHT (VBEModeInfo->height)
 
 // Variables for cursor position and font scaling
 uint64_t cursorX = 0;
@@ -225,3 +227,12 @@ void video_printError(const char *errorMsg) {
 
 }
 
+void video_clearScreenColor(uint32_t color) {
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            video_putPixel(color, x, y); // Corregir orden de parámetros
+        }
+    }
+    cursorX = 0;
+    cursorY = 0;
+}

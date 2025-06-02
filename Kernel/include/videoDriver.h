@@ -53,4 +53,6 @@ void setFontScale(uint64_t scale);
 
 void video_printError(const char *errorMsg);
 
+void video_clearScreenColor(uint32_t color);
+
 #endif

@@ -312,6 +312,75 @@ int printf(const char *fmt, ...) {
     return count;
 }
 
+int sprintf(char *str, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    int count = 0;
+    int str_index = 0;
+
+    for (int i = 0; fmt[i] != '\0'; i++) {
+        if (fmt[i] == '%') {
+            i++;
+            switch (fmt[i]) {
+                case 's': {
+                    char *s = va_arg(args, char *);
+                    while (*s) {
+                        str[str_index++] = *s++;
+                        count++;
+                    }
+                    break;
+                }
+                case 'd': {
+                    int n = va_arg(args, int);
+                    if (n == 0) {
+                        str[str_index++] = '0';
+                        count++;
+                        break;
+                    }
+
+                    if (n < 0) {
+                        str[str_index++] = '-';
+                        n = -n;
+                        count++;
+                    }
+
+                    char buf[12];
+                    int buf_i = 0;
+
+                    while (n > 0) {
+                        buf[buf_i++] = (n % 10) + '0';
+                        n /= 10;
+                    }
+
+                    while (buf_i--) {
+                        str[str_index++] = buf[buf_i];
+                        count++;
+                    }
+                    break;
+                }
+                case 'c': {
+                    char c = (char)va_arg(args, int);
+                    str[str_index++] = c;
+                    count++;
+                    break;
+                }
+                default:
+                    str[str_index++] = '%';
+                    str[str_index++] = fmt[i];
+                    count += 2;
+                    break;
+            }
+        } else {
+            str[str_index++] = fmt[i];
+            count++;
+        }
+    }
+    
+    str[str_index] = '\0';
+    va_end(args);
+    return count;
+}
+
 void clearScreen() {
     sys_clearScreen();
 }
@@ -352,3 +421,14 @@ void printHex64(uint64_t value) {
     printf("0x%s", hex);
 }
 
+void video_putPixel(int x, int y, uint32_t color) {
+    sys_video_putPixel(x, y, color);
+}
+
+void video_putChar(char c, uint32_t fg, uint32_t bg) {
+    sys_video_putChar(c, fg, bg);
+}
+
+void video_clearScreenColor(uint32_t color) {
+    sys_video_clearScreenColor(color);
+}

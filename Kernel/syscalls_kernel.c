@@ -1,6 +1,6 @@
 #include <syscalls_lib.h>
 #include <keyboardDriver.h>
-#include <videoDriver.h>
+#include "include/videoDriver.h"
 #include <audioDriver.h>
 #include <rtc.h>
 #include <stddef.h>
@@ -102,4 +102,19 @@ uint64_t syscall_takeRegistersSnapshot(uint64_t *regs) {
         registers_snapshot[i] = regs[i];
     snapshotTaken = 1;
     return 1;
+}
+
+uint64_t syscall_video_putPixel(uint64_t x, uint64_t y, uint64_t color, uint64_t unused1, uint64_t unused2) {
+    video_putPixel((uint32_t)color, x, y);
+    return 0;
+}
+
+uint64_t syscall_video_putChar(uint64_t c, uint64_t fg, uint64_t bg, uint64_t unused1, uint64_t unused2) {
+    video_putChar((char)c, fg, bg);
+    return 0;
+}
+
+uint64_t syscall_video_clearScreenColor(uint64_t color, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4) {
+    video_clearScreenColor((uint32_t)color);
+    return 0;
 }

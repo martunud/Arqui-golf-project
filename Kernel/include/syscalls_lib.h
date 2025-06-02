@@ -51,4 +51,8 @@ uint64_t syscall_sleep(int duration);
 uint64_t syscall_setFontScale(int scale);
 
 uint64_t syscall_takeRegistersSnapshot();
+
+uint64_t syscall_video_putPixel(uint64_t x, uint64_t y, uint64_t color, uint64_t unused1, uint64_t unused2);
+uint64_t syscall_video_putChar(uint64_t c, uint64_t fg, uint64_t bg, uint64_t unused1, uint64_t unused2);
+uint64_t syscall_video_clearScreenColor(uint64_t color, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4);
 #endif

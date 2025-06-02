@@ -10,6 +10,10 @@ GLOBAL sys_sleep
 GLOBAL sys_setFontScale
 GLOBAL sys_takeRegistersSnapshot
 
+GLOBAL sys_video_putPixel
+GLOBAL sys_video_putChar
+GLOBAL sys_video_clearScreenColor
+
 
 sys_read:
     push rbp
@@ -95,6 +99,38 @@ sys_takeRegistersSnapshot:
     mov rbp, rsp
     mov rax, 8
     mov rdi, rdi      ; Primer argumento: puntero al buffer de registros
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+section .text
+
+sys_video_clearScreenColor:
+    push rbp
+    mov rbp, rsp
+    mov rax, 9         ; Usar syscall 9 (clearScreenColor existente)
+    ; rdi ya contiene el color
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_video_putPixel:
+    push rbp
+    mov rbp, rsp
+    mov rax, 10         ; Número de syscall para putPixel
+    ; Los parámetros ya están en rdi (x), rsi (y), rdx (color)
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_video_putChar:
+    push rbp
+    mov rbp, rsp
+    mov rax, 11         ; Número de syscall para putChar
+    ; Los parámetros ya están en rdi (char), rsi (fg), rdx (bg)
     int 0x80
     mov rsp, rbp
     pop rbp
