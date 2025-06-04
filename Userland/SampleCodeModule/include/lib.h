@@ -37,4 +37,5 @@ void printHex64(uint64_t value);
 void video_putPixel(int x, int y, uint32_t color);
 void video_putChar(char c, uint32_t fg, uint32_t bg);
 void video_clearScreenColor(uint32_t color); // Nueva función para limpiar con color
+void sleep(int milliseconds);
 #endif

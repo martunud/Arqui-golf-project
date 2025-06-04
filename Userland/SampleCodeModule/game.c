@@ -63,6 +63,21 @@ void eraseTextArea(int x, int y, int width, int height) {
     }
 }
 
+// Add this helper function near the top of your file:
+int isInsideHole(int x, int y, int h_x, int h_y) {
+    int dx = x - h_x;
+    int dy = y - h_y;
+    return (dx*dx + dy*dy <= 15*15); // 15 is hole radius
+}
+
+// Add this helper function to check if a point is inside the player
+int isInsidePlayer(int x, int y, int p_x, int p_y) {
+    int dx = x - p_x;
+    int dy = y - p_y;
+    return (dx*dx + dy*dy <= PLAYER_RADIUS * PLAYER_RADIUS);
+}
+
+
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_GREY);
     int centerX = 400, centerY = 300;
@@ -121,7 +136,29 @@ void game_start() {
         
         if (prev_ball_x != ball_x || prev_ball_y != ball_y) {
             // Ball moved - erase old position and draw new one
-            eraseCircle(prev_ball_x, prev_ball_y, 5);
+            for (int y = -5; y <= 5; y++) {
+                for (int x = -5; x <= 5; x++) {
+                    if (x*x + y*y <= 5*5) {
+                        int px = prev_ball_x + x;
+                        int py = prev_ball_y + y;
+                        
+                        if (px >= 0 && px < SCREEN_WIDTH && py >= 0 && py < SCREEN_HEIGHT) {
+                            // Check if this pixel overlaps with player or hole
+                            if (isInsidePlayer(px, py, player_x, player_y)) {
+                                video_putPixel(px, py, COLOR_PLAYER);
+                            }
+                            else if (isInsideHole(px, py, hole_x, hole_y)) {
+                                video_putPixel(px, py, COLOR_HOLE);
+                            }
+                            else {
+                                video_putPixel(px, py, COLOR_BG_GREEN);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Now draw the ball at its new position
             drawCircle(ball_x, ball_y, 5, COLOR_BALL);
         }
         
@@ -162,11 +199,31 @@ void game_start() {
             int prev_arrow_x = prev_player_x + (cos_table[prev_player_angle] * prev_arrow_len) / 100;
             int prev_arrow_y = prev_player_y + (sin_table[prev_player_angle] * prev_arrow_len) / 100;
             
-            video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_BG_GREEN);
-            video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_BG_GREEN);
-            video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_BG_GREEN);
-            video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_BG_GREEN);
-            video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_BG_GREEN);
+            // Check if pixels are inside hole before erasing
+            if (isInsideHole(prev_arrow_x, prev_arrow_y, hole_x, hole_y))
+                video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_HOLE);
+            else
+                video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_BG_GREEN);
+                
+            if (isInsideHole(prev_arrow_x + 1, prev_arrow_y, hole_x, hole_y))
+                video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_HOLE);
+            else
+                video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_BG_GREEN);
+                
+            if (isInsideHole(prev_arrow_x, prev_arrow_y + 1, hole_x, hole_y))
+                video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_HOLE);
+            else
+                video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_BG_GREEN);
+                
+            if (isInsideHole(prev_arrow_x - 1, prev_arrow_y, hole_x, hole_y))
+                video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_HOLE);
+            else
+                video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_BG_GREEN);
+                
+            if (isInsideHole(prev_arrow_x, prev_arrow_y - 1, hole_x, hole_y))
+                video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_HOLE);
+            else
+                video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_BG_GREEN);
             
             // Draw new arrow
             int arrow_len = 18;
@@ -225,6 +282,11 @@ void game_start() {
                     if (power > 0) power -= 5;
                     needs_redraw = 1;
                 } else if (input == (char)0x80) { // Flecha arriba: mover jugador
+                    // Store original position
+                    int old_player_x = player_x;
+                    int old_player_y = player_y;
+                    
+                    // Try to move player
                     player_x += (cos_table[player_angle] * 10) / 100;
                     player_y += (sin_table[player_angle] * 10) / 100;
 
@@ -233,7 +295,19 @@ void game_start() {
                     if (player_x >= SCREEN_WIDTH - PLAYER_RADIUS) player_x = SCREEN_WIDTH - PLAYER_RADIUS - 1;
                     if (player_y < PLAYER_RADIUS + UI_TOP_MARGIN) player_y = PLAYER_RADIUS + UI_TOP_MARGIN;
                     if (player_y >= SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS - 1;
-
+                    
+                    // *** ADD THIS CODE: Check if player would overlap with hole ***
+                    int hole_dx = player_x - hole_x;
+                    int hole_dy = player_y - hole_y;
+                    int hole_dist2 = hole_dx * hole_dx + hole_dy * hole_dy;
+                    int min_collision_dist = PLAYER_RADIUS + 15; // Player radius + hole radius
+                    
+                    // If player would overlap with hole, revert to previous position
+                    if (hole_dist2 < min_collision_dist * min_collision_dist) {
+                        player_x = old_player_x;
+                        player_y = old_player_y;
+                    }
+                    
                     // Si después de mover está cerca de la pelota, puede golpear
                     dx = ball_x - player_x;
                     dy = ball_y - player_y;
@@ -303,3 +377,4 @@ void game_start() {
         sleep(16);  // ~60 FPS (16.7ms per frame)
     }
 }
+
