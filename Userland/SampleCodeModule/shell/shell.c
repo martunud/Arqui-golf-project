@@ -46,6 +46,7 @@ void readLine(char *buf, int maxLen) {
         } else if ((unsigned char)c == 0x12) { // CTRL+R especial
             takeRegistersSnapshot();
             printf("\n[Snapshot de registros tomado]\n");
+            shellPrompt(); // Añadir el prompt después del mensaje
         } else if (len < maxLen-1) {
             buf[len++] = c;
             putchar(c);

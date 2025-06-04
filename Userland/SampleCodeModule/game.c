@@ -85,6 +85,7 @@ void game_main_screen() {
     drawText(centerX - 120, centerY - 50, "Bienvenido a Pongis-Golf", COLOR_TEXT_BLUE);
     drawText(centerX - 100, centerY, "Presione 1 para empezar", COLOR_TEXT_BLUE);
     drawText(centerX - 80, centerY + 50, "Presione ESC para salir", COLOR_TEXT_BLUE);
+    drawText(centerX - 140, centerY + 70, "Presione CTRL+R durante el juego para snapshot", COLOR_TEXT_BLUE);
 
     while (1) {
         char input = getchar();
@@ -128,11 +129,10 @@ void game_start() {
     char power_str[40];
     sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
     drawText(10, 10, power_str, COLOR_TEXT_WHITE);
-    drawText(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE);
+    drawText(10, 30, "W/S: power | <- y ->: direccion | UP: mover | CTRL+R: snapshot | ESC: salir", COLOR_TEXT_WHITE);
 
     while (1) {
-        // Don't clear the entire screen
-        // Instead, selectively erase and redraw only what changed
+ 
         
         if (prev_ball_x != ball_x || prev_ball_y != ball_y) {
             // Ball moved - erase old position and draw new one
@@ -271,6 +271,9 @@ void game_start() {
             if (input == 27) { // ESC
                 clearScreen();
                 break;
+            } else if ((unsigned char)input == 0x12) { // CTRL+R (código 0x12)
+                takeRegistersSnapshot();
+                // No mostrar ningún mensaje - simplemente tomar el snapshot
             }
 
             // SOLO permitir controles de jugador si la pelota está quieta y no está en el hoyo
