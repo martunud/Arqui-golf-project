@@ -191,8 +191,8 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
         int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
         int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
 
-        // Solo mostrar flecha si la pelota está quieta y no está en el hoyo
-        if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
+        // Mostrar flecha siempre que la pelota no esté en el hoyo
+        if (!ball_in_hole) {
             // Helper para evitar dibujar fuera de pantalla
             #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= 0 && (y) < SCREEN_HEIGHT)
             int arrow_points[5][2] = {
@@ -298,8 +298,8 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
             }
 
             // SOLO permitir controles de jugador si la pelota está quieta y no está en el hoyo
-            if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
-                     if (input == (char)0x80) { // Flecha arriba: mover jugador
+            if (!ball_in_hole) {  // Allow player movement anytime the ball isn't in hole
+                if (input == (char)0x80) { // Flecha arriba: mover jugador
                     // Store original position
                     int old_player_x = player_x;
                     int old_player_y = player_y;
