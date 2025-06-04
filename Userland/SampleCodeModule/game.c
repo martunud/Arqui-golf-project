@@ -8,6 +8,7 @@
 #define COLOR_BALL 0xFFFF00
 #define COLOR_HOLE 0x000000
 #define COLOR_TEXT_WHITE 0xFFFFFF
+#define COLOR_BG_BLACK 0x000000 // Add this line
 
 #define SCREEN_WIDTH 1024  // Aumentar según las dimensiones reales
 #define SCREEN_HEIGHT 768  // Aumentar según las dimensiones reales
@@ -41,6 +42,17 @@ void drawText(int x, int y, const char *text, uint32_t color) {
     for (int i = 0; i < spaces; i++) video_putChar(' ', color, COLOR_BG_GREY);
     while (*text) {
         video_putChar(*text, color, COLOR_BG_GREY);
+        text++;
+    }
+}
+
+void drawTextWithBg(int x, int y, const char *text, uint32_t textColor, uint32_t bgColor) {
+    int lines = y / 16;
+    int spaces = x / 8;
+    for (int i = 0; i < lines; i++) video_putChar('\n', textColor, bgColor);
+    for (int i = 0; i < spaces; i++) video_putChar(' ', textColor, bgColor);
+    while (*text) {
+        video_putChar(*text, textColor, bgColor);
         text++;
     }
 }
@@ -111,6 +123,8 @@ void game_start() {
     int power = 0, prev_power = 0;
     int player_x = 50, player_y = 300;
     int prev_player_x = player_x, prev_player_y = player_y;
+    char modo[] = "Solitario";
+    int nivel = 1;
 
     int ball_vx = 0, ball_vy = 0;
     int player_angle = 0, prev_player_angle = 0;
@@ -125,10 +139,15 @@ void game_start() {
     drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
     drawCircle(ball_x, ball_y, 5, COLOR_BALL);
     
-    char power_str[40];
-    sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
-    drawText(10, 10, power_str, COLOR_TEXT_WHITE);
-    drawText(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE);
+    // Draw the full-width background bars
+drawFullWidthBar(0, 16, COLOR_BG_BLACK);  // Background for first text line
+drawFullWidthBar(16, 16, COLOR_BG_BLACK); // Background for second text line
+
+// Then draw text on top of them
+char power_str[40];
+sprintf(power_str, "Nivel: %d , Modo: %s ", nivel, modo);
+drawTextWithBg(10, 10, power_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
 
     while (1) {
         // Don't clear the entire screen
@@ -251,17 +270,19 @@ void game_start() {
         }
         
         // Update power text only if changed
-        if (prev_power != power) {
-            eraseTextArea(10, 10, 300, 16);  // Erase old text area
-            sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
-            drawText(10, 10, power_str, COLOR_TEXT_WHITE);
+        if (prev_power != power) {  // Only redraw when power changes, not angle
+            // Redraw full-width background
+            drawFullWidthBar(0, 16, COLOR_BG_BLACK);
+            
+            sprintf(power_str, "Power: %d", power);  // Remove angle display
+            drawTextWithBg(10, 10, power_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
         }
         
         // Save current state for next comparison
         prev_ball_x = ball_x;
         prev_ball_y = ball_y;
         prev_player_x = player_x;
-        prev_player_y = player_y;
+        prev_player_y = player_y;  // CORRECTED: Now properly saves player_y
         prev_player_angle = player_angle;
         prev_power = power;
 
@@ -275,13 +296,7 @@ void game_start() {
 
             // SOLO permitir controles de jugador si la pelota está quieta y no está en el hoyo
             if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
-                if (input == 'w' || input == 'W') {
-                    if (power < 100) power += 5;
-                    needs_redraw = 1;
-                } else if (input == 's' || input == 'S') {
-                    if (power > 0) power -= 5;
-                    needs_redraw = 1;
-                } else if (input == (char)0x80) { // Flecha arriba: mover jugador
+                     if (input == (char)0x80) { // Flecha arriba: mover jugador
                     // Store original position
                     int old_player_x = player_x;
                     int old_player_y = player_y;
@@ -351,7 +366,7 @@ void game_start() {
         // Rebote simple en bordes
         if (ball_x < 5) { ball_x = 5; ball_vx = -ball_vx; }
         if (ball_x > SCREEN_WIDTH - 5) { ball_x = SCREEN_WIDTH - 5; ball_vx = -ball_vx; }
-        if (ball_y < 5) { ball_y = 5; ball_vy = -ball_vy; }
+        if (ball_y < UI_TOP_MARGIN + 5) { ball_y = UI_TOP_MARGIN + 5; ball_vy = -ball_vy; }
         if (ball_y > SCREEN_HEIGHT - 5) { ball_y = SCREEN_HEIGHT - 5; ball_vy = -ball_vy; }
 
         // Verificar si la pelota llegó al hoyo
@@ -375,6 +390,15 @@ void game_start() {
 
         // Optimize your sleep time for smoother animation
         sleep(16);  // ~60 FPS (16.7ms per frame)
+    }
+}
+
+// Add this function after your other drawing helper functions
+void drawFullWidthBar(int y, int height, uint32_t color) {
+    for (int j = y; j < y + height; j++) {
+        for (int i = 0; i < SCREEN_WIDTH; i++) {
+            video_putPixel(i, j, color);
+        }
     }
 }
 
