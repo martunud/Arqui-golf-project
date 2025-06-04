@@ -432,3 +432,9 @@ void video_putChar(char c, uint32_t fg, uint32_t bg) {
 void video_clearScreenColor(uint32_t color) {
     sys_video_clearScreenColor(color);
 }
+
+int try_getchar(char *c) {
+    // syscall.h: sys_read(fd, buffer, count);
+    // Si no hay input devuelve 0; si hay, devuelve 1.
+    return sys_read(0, c, 1);
+}

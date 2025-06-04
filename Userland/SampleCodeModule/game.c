@@ -90,52 +90,65 @@ void game_start() {
         int arrow_len = 18;
         int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
         int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
-        video_putPixel(arrow_x, arrow_y, COLOR_TEXT_BLUE);
-        video_putPixel(arrow_x + 1, arrow_y, COLOR_TEXT_BLUE);
-        video_putPixel(arrow_x, arrow_y + 1, COLOR_TEXT_BLUE);
-        video_putPixel(arrow_x - 1, arrow_y, COLOR_TEXT_BLUE);
-        video_putPixel(arrow_x, arrow_y - 1, COLOR_TEXT_BLUE);
+
+        // Solo mostrar flecha si la pelota está quieta y no está en el hoyo
+        if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
+            video_putPixel(arrow_x, arrow_y, COLOR_TEXT_BLUE);
+            video_putPixel(arrow_x + 1, arrow_y, COLOR_TEXT_BLUE);
+            video_putPixel(arrow_x, arrow_y + 1, COLOR_TEXT_BLUE);
+            video_putPixel(arrow_x - 1, arrow_y, COLOR_TEXT_BLUE);
+            video_putPixel(arrow_x, arrow_y - 1, COLOR_TEXT_BLUE);
+        }
 
         char power_str[40];
         sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
         drawText(10, 10, power_str, COLOR_TEXT_WHITE);
         drawText(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE);
 
-        char input = getchar();
-        if (input != 0) {
-            if (input == 27) {
+        // ---- INPUT NO BLOQUEANTE ----
+        char input = 0;
+        if (try_getchar(&input)) {
+            if (input == 27) { // ESC
                 clearScreen();
                 break;
-            } else if (input == 'w' || input == 'W') {
-                if (power < 100) power += 5;
-            } else if (input == 's' || input == 'S') {
-                if (power > 0) power -= 5;
-            } else if (input == (char)0x80) {
-                player_x += (cos_table[player_angle] * 10) / 100;
-                player_y += (sin_table[player_angle] * 10) / 100;
+            }
 
-                dx = ball_x - player_x;
-                dy = ball_y - player_y;
-                dist2 = dx*dx + dy*dy;
-                min_dist = PLAYER_RADIUS + 5;
-                if (dist2 <= min_dist * min_dist && ball_vx == 0 && ball_vy == 0 && !ball_in_hole && puede_golpear) {
-                    int golpe_power = (power > 0) ? power : 20;
-                    ball_vx = (cos_table[player_angle] * golpe_power) / 10;
-                    ball_vy = (sin_table[player_angle] * golpe_power) / 10;
-                    puede_golpear = 0;
+            // SOLO permitir controles de jugador si la pelota está quieta y no está en el hoyo
+            if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
+                if (input == 'w' || input == 'W') {
+                    if (power < 100) power += 5;
+                } else if (input == 's' || input == 'S') {
+                    if (power > 0) power -= 5;
+                } else if (input == (char)0x80) { // Flecha arriba: mover jugador
+                    player_x += (cos_table[player_angle] * 10) / 100;
+                    player_y += (sin_table[player_angle] * 10) / 100;
+
+                    // Evitar que salga de pantalla
+                    if (player_x < PLAYER_RADIUS) player_x = PLAYER_RADIUS;
+                    if (player_x > SCREEN_WIDTH - PLAYER_RADIUS) player_x = SCREEN_WIDTH - PLAYER_RADIUS;
+                    if (player_y < PLAYER_RADIUS) player_y = PLAYER_RADIUS;
+                    if (player_y > SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS;
+
+                    // Si después de mover está cerca de la pelota, puede golpear
+                    dx = ball_x - player_x;
+                    dy = ball_y - player_y;
+                    dist2 = dx*dx + dy*dy;
+                    min_dist = PLAYER_RADIUS + 5;
+                    if (dist2 <= min_dist * min_dist && puede_golpear) {
+                        int golpe_power = (power > 0) ? power : 20;
+                        ball_vx = (cos_table[player_angle] * golpe_power) / 10;
+                        ball_vy = (sin_table[player_angle] * golpe_power) / 10;
+                        puede_golpear = 0;
+                    }
+                } else if (input == (char)0x82) { // Flecha izquierda
+                    player_angle = (player_angle + 35) % 36;
+                } else if (input == (char)0x83) { // Flecha derecha
+                    player_angle = (player_angle + 1) % 36;
                 }
-            } else if (input == (char)0x82) {
-                player_angle = (player_angle + 35) % 36;
-            } else if (input == (char)0x83) {
-                player_angle = (player_angle + 1) % 36;
             }
         }
 
-        if (player_x < PLAYER_RADIUS) player_x = PLAYER_RADIUS;
-        if (player_x > SCREEN_WIDTH - PLAYER_RADIUS) player_x = SCREEN_WIDTH - PLAYER_RADIUS;
-        if (player_y < PLAYER_RADIUS) player_y = PLAYER_RADIUS;
-        if (player_y > SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS;
-
+        // Permitir volver a golpear solo si el jugador está lejos de la pelota
         dx = ball_x - player_x;
         dy = ball_y - player_y;
         dist2 = dx*dx + dy*dy;
@@ -144,6 +157,7 @@ void game_start() {
             puede_golpear = 1;
         }
 
+        // ---- FÍSICA DE LA PELOTA ----
         if ((ball_vx != 0 || ball_vy != 0) && !ball_in_hole) {
             ball_x += ball_vx / 10;
             ball_y += ball_vy / 10;
@@ -153,11 +167,13 @@ void game_start() {
             if (ball_vy < 1 && ball_vy > -1) ball_vy = 0;
         }
 
-        if (ball_x < 5) ball_x = 5;
-        if (ball_x > SCREEN_WIDTH - 5) ball_x = SCREEN_WIDTH - 5;
-        if (ball_y < 5) ball_y = 5;
-        if (ball_y > SCREEN_HEIGHT - 5) ball_y = SCREEN_HEIGHT - 5;
+        // Rebote simple en bordes
+        if (ball_x < 5) { ball_x = 5; ball_vx = -ball_vx; }
+        if (ball_x > SCREEN_WIDTH - 5) { ball_x = SCREEN_WIDTH - 5; ball_vx = -ball_vx; }
+        if (ball_y < 5) { ball_y = 5; ball_vy = -ball_vy; }
+        if (ball_y > SCREEN_HEIGHT - 5) { ball_y = SCREEN_HEIGHT - 5; ball_vy = -ball_vy; }
 
+        // Verificar si la pelota llegó al hoyo
         int hx = ball_x - hole_x;
         int hy = ball_y - hole_y;
         int hole_dist2 = hx * hx + hy * hy;
@@ -167,8 +183,8 @@ void game_start() {
             ball_vy = 0;
             drawText(300, 100, "¡Hoyo! Presione ESC para salir", COLOR_TEXT_BLUE);
             while (1) {
-                char esc_input = getchar();
-                if (esc_input == 27) {
+                char esc_input = 0;
+                if (try_getchar(&esc_input) && esc_input == 27) {
                     clearScreen();
                     return;
                 }
@@ -176,6 +192,7 @@ void game_start() {
             }
         }
 
-        for (volatile int i = 0; i < 100000; i++); // delay del bucle principal
+        // Pequeño delay para suavizar la animación (~60 FPS aprox)
+        for (volatile int i = 0; i < 100000; i++);
     }
 }

@@ -26,7 +26,7 @@ int atoi(char* str);
 char *fgets(char *s, int n, int fd);
 void clearScreen();
 int sprintf(char *str, const char *fmt, ...);
-
+int try_getchar(char *c);
 void getTime(char *buffer);
 void setFontScale(int scale);
 int getRegisters(uint64_t *buffer);
