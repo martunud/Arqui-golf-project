@@ -21,11 +21,16 @@ void drawCircle(int cx, int cy, int radius, uint32_t color) {
     for (int y = -radius; y <= radius; y++) {
         for (int x = -radius; x <= radius; x++) {
             if (x*x + y*y <= radius*radius) {
-                video_putPixel(cx + x, cy + y, color);
+                int px = cx + x;
+                int py = cy + y;
+                if (px >= 0 && px < SCREEN_WIDTH && py >= 0 && py < SCREEN_HEIGHT) {
+                    video_putPixel(px, py, color);
+                }
             }
         }
     }
 }
+
 
 void drawText(int x, int y, const char *text, uint32_t color) {
     int lines = y / 16;
@@ -93,11 +98,22 @@ void game_start() {
 
         // Solo mostrar flecha si la pelota está quieta y no está en el hoyo
         if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
-            video_putPixel(arrow_x, arrow_y, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x + 1, arrow_y, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x, arrow_y + 1, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x - 1, arrow_y, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x, arrow_y - 1, COLOR_TEXT_BLUE);
+            // Helper para evitar dibujar fuera de pantalla
+            #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= 0 && (y) < SCREEN_HEIGHT)
+            int arrow_points[5][2] = {
+                {arrow_x, arrow_y},
+                {arrow_x + 1, arrow_y},
+                {arrow_x, arrow_y + 1},
+                {arrow_x - 1, arrow_y},
+                {arrow_x, arrow_y - 1}
+            };
+            for (int i = 0; i < 5; i++) {
+                int px = arrow_points[i][0];
+                int py = arrow_points[i][1];
+                if (IN_SCREEN(px, py))
+                    video_putPixel(px, py, COLOR_TEXT_BLUE);
+            }
+            #undef IN_SCREEN
         }
 
         char power_str[40];
