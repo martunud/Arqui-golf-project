@@ -438,3 +438,8 @@ int try_getchar(char *c) {
     // Si no hay input devuelve 0; si hay, devuelve 1.
     return sys_read(0, c, 1);
 }
+
+void sleep(int ms) {
+    // syscall.h: sys_sleep(milliseconds);
+    sys_sleep(ms);
+}

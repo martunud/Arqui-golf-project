@@ -38,6 +38,24 @@ void drawText(int x, int y, const char *text, uint32_t color) {
     }
 }
 
+void eraseCircle(int cx, int cy, int radius) {
+    for (int y = -radius; y <= radius; y++) {
+        for (int x = -radius; x <= radius; x++) {
+            if (x*x + y*y <= radius*radius) {
+                video_putPixel(cx + x, cy + y, COLOR_BG_GREEN);
+            }
+        }
+    }
+}
+
+void eraseTextArea(int x, int y, int width, int height) {
+    for (int j = y; j < y + height; j++) {
+        for (int i = x; i < x + width; i++) {
+            video_putPixel(i, j, COLOR_BG_GREEN);
+        }
+    }
+}
+
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_GREY);
     int centerX = 400, centerY = 300;
@@ -63,47 +81,90 @@ void game_main_screen() {
 }
 
 void game_start() {
-    video_clearScreenColor(COLOR_BG_GREEN);
+    video_clearScreenColor(COLOR_BG_GREEN);  // Initial full clear
 
     int ball_x = 100, ball_y = 300;
+    int prev_ball_x = ball_x, prev_ball_y = ball_y;
     int hole_x = 700, hole_y = 300;
-    int power = 0;
+    int power = 0, prev_power = 0;
     int player_x = 50, player_y = 300;
+    int prev_player_x = player_x, prev_player_y = player_y;
 
     int ball_vx = 0, ball_vy = 0;
-    int player_angle = 0;
+    int player_angle = 0, prev_player_angle = 0;
 
     int ball_in_hole = 0;
     int puede_golpear = 1;
     int dx, dy, dist2, min_dist;
+    int needs_redraw = 1; // Start with initial draw
+    
+    // Initial draw of all elements
+    drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
+    drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
+    drawCircle(ball_x, ball_y, 5, COLOR_BALL);
+    
+    char power_str[40];
+    sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
+    drawText(10, 10, power_str, COLOR_TEXT_WHITE);
+    drawText(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE);
 
     while (1) {
-        video_clearScreenColor(COLOR_BG_GREEN);
-
-        drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
-        drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
-
-        if (!ball_in_hole) {
+        // Don't clear the entire screen
+        // Instead, selectively erase and redraw only what changed
+        
+        if (prev_ball_x != ball_x || prev_ball_y != ball_y) {
+            // Ball moved - erase old position and draw new one
+            eraseCircle(prev_ball_x, prev_ball_y, 5);
             drawCircle(ball_x, ball_y, 5, COLOR_BALL);
         }
-
-        int arrow_len = 18;
-        int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
-        int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
-
-        // Solo mostrar flecha si la pelota está quieta y no está en el hoyo
-        if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
-            video_putPixel(arrow_x, arrow_y, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x + 1, arrow_y, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x, arrow_y + 1, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x - 1, arrow_y, COLOR_TEXT_BLUE);
-            video_putPixel(arrow_x, arrow_y - 1, COLOR_TEXT_BLUE);
+        
+        if (prev_player_x != player_x || prev_player_y != player_y) {
+            // Player moved - erase old position and draw new one
+            eraseCircle(prev_player_x, prev_player_y, PLAYER_RADIUS);
+            drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
         }
-
-        char power_str[40];
-        sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
-        drawText(10, 10, power_str, COLOR_TEXT_WHITE);
-        drawText(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE);
+        
+        // Handle direction indicator (blue arrow)
+        if (prev_player_angle != player_angle || prev_player_x != player_x || prev_player_y != player_y) {
+            // Erase old arrow
+            int prev_arrow_len = 18;
+            int prev_arrow_x = prev_player_x + (cos_table[prev_player_angle] * prev_arrow_len) / 100;
+            int prev_arrow_y = prev_player_y + (sin_table[prev_player_angle] * prev_arrow_len) / 100;
+            
+            video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_BG_GREEN);
+            video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_BG_GREEN);
+            video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_BG_GREEN);
+            video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_BG_GREEN);
+            video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_BG_GREEN);
+            
+            // Draw new arrow
+            int arrow_len = 18;
+            int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
+            int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
+            
+            if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
+                video_putPixel(arrow_x, arrow_y, COLOR_TEXT_BLUE);
+                video_putPixel(arrow_x + 1, arrow_y, COLOR_TEXT_BLUE);
+                video_putPixel(arrow_x, arrow_y + 1, COLOR_TEXT_BLUE);
+                video_putPixel(arrow_x - 1, arrow_y, COLOR_TEXT_BLUE);
+                video_putPixel(arrow_x, arrow_y - 1, COLOR_TEXT_BLUE);
+            }
+        }
+        
+        // Update power text only if changed
+        if (prev_power != power) {
+            eraseTextArea(10, 10, 300, 16);  // Erase old text area
+            sprintf(power_str, "Power: %d  Angulo: %d", power, player_angle * 10);
+            drawText(10, 10, power_str, COLOR_TEXT_WHITE);
+        }
+        
+        // Save current state for next comparison
+        prev_ball_x = ball_x;
+        prev_ball_y = ball_y;
+        prev_player_x = player_x;
+        prev_player_y = player_y;
+        prev_player_angle = player_angle;
+        prev_power = power;
 
         // ---- INPUT NO BLOQUEANTE ----
         char input = 0;
@@ -117,8 +178,10 @@ void game_start() {
             if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
                 if (input == 'w' || input == 'W') {
                     if (power < 100) power += 5;
+                    needs_redraw = 1;
                 } else if (input == 's' || input == 'S') {
                     if (power > 0) power -= 5;
+                    needs_redraw = 1;
                 } else if (input == (char)0x80) { // Flecha arriba: mover jugador
                     player_x += (cos_table[player_angle] * 10) / 100;
                     player_y += (sin_table[player_angle] * 10) / 100;
@@ -142,8 +205,10 @@ void game_start() {
                     }
                 } else if (input == (char)0x82) { // Flecha izquierda
                     player_angle = (player_angle + 35) % 36;
+                    needs_redraw = 1;
                 } else if (input == (char)0x83) { // Flecha derecha
                     player_angle = (player_angle + 1) % 36;
+                    needs_redraw = 1;
                 }
             }
         }
@@ -192,7 +257,7 @@ void game_start() {
             }
         }
 
-        // Pequeño delay para suavizar la animación (~60 FPS aprox)
-        for (volatile int i = 0; i < 100000; i++);
+        // Optimize your sleep time for smoother animation
+        sleep(16);  // ~60 FPS (16.7ms per frame)
     }
 }
