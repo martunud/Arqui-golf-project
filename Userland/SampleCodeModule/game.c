@@ -9,8 +9,10 @@
 #define COLOR_HOLE 0x000000
 #define COLOR_TEXT_WHITE 0xFFFFFF
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1024  // Aumentar según las dimensiones reales
+#define SCREEN_HEIGHT 768  // Aumentar según las dimensiones reales
+#define UI_TOP_MARGIN 32
+
 #define PLAYER_RADIUS 10
 
 // Tabla de seno y coseno para 36 ángulos (cada 10 grados)
@@ -228,9 +230,9 @@ void game_start() {
 
                     // Evitar que salga de pantalla
                     if (player_x < PLAYER_RADIUS) player_x = PLAYER_RADIUS;
-                    if (player_x > SCREEN_WIDTH - PLAYER_RADIUS) player_x = SCREEN_WIDTH - PLAYER_RADIUS;
-                    if (player_y < PLAYER_RADIUS) player_y = PLAYER_RADIUS;
-                    if (player_y > SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS;
+                    if (player_x >= SCREEN_WIDTH - PLAYER_RADIUS) player_x = SCREEN_WIDTH - PLAYER_RADIUS - 1;
+                    if (player_y < PLAYER_RADIUS + UI_TOP_MARGIN) player_y = PLAYER_RADIUS + UI_TOP_MARGIN;
+                    if (player_y >= SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS - 1;
 
                     // Si después de mover está cerca de la pelota, puede golpear
                     dx = ball_x - player_x;
