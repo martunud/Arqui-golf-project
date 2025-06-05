@@ -36,13 +36,8 @@ void drawCircle(int cx, int cy, int radius, uint32_t color) {
 
 
 void drawText(int x, int y, const char *text, uint32_t color) {
-    int lines = y / 16;
-    int spaces = x / 8;
-    for (int i = 0; i < lines; i++) video_putChar('\n', color, COLOR_BG_GREY);
-    for (int i = 0; i < spaces; i++) video_putChar(' ', color, COLOR_BG_GREY);
-    while (*text) {
-        video_putChar(*text, color, COLOR_BG_GREY);
-        text++;
+    for (int i = 0; text[i] != '\0'; i++) {
+        video_putCharXY(x + i * 8, y, text[i], color, COLOR_BG_GREY);
     }
 }
 
@@ -109,16 +104,32 @@ int circles_overlap(int x1, int y1, int r1, int x2, int y2, int r2) {
 
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_GREY);
-    int centerX = 400, centerY = 300;
 
-    drawText(centerX - 120, centerY - 50, "Bienvenido a Pongis-Golf", COLOR_TEXT_BLUE);
-    drawText(centerX - 100, centerY, "Presione 1 para empezar", COLOR_TEXT_BLUE);
-    drawText(centerX - 80, centerY + 50, "Presione ESC para salir", COLOR_TEXT_BLUE);
-    drawText(centerX - 140, centerY + 70, "Presione CTRL+R durante el juego para snapshot", COLOR_TEXT_BLUE);
+    const char *lines[] = {
+        "Bienvenido a Pongis-Golf",
+        "Presione 1 para jugar",
+        "Presione ESC para salir",
+        "Presione CTRL+R para tomar un snapshot"
+    };
+    int num_lines = 4;
+    int line_height = 20; // Más compacto
+    int font_width = 8;   // Asumiendo fuente monoespaciada
+    int font_height = 16; // Asumiendo altura de fuente
+
+    // Calcular alto total del bloque de texto
+    int total_height = num_lines * line_height;
+    int startY = (SCREEN_HEIGHT - total_height) / 2;
+
+    for (int i = 0; i < num_lines; i++) {
+        int text_len = strlen(lines[i]);
+        int text_width = text_len * font_width;
+        int x = (SCREEN_WIDTH - text_width) / 2;
+        int y = startY + i * line_height;
+        drawText(x, y, lines[i], COLOR_TEXT_BLUE);
+    }
 
     while (1) {
         char input = getchar();
-        printf("Input: %d\n", input); 
         if (input != 0) {
             if (input == '1') {
                 game_start();

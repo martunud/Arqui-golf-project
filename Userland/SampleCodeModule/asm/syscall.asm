@@ -13,6 +13,8 @@ GLOBAL sys_takeRegistersSnapshot
 GLOBAL sys_video_putPixel
 GLOBAL sys_video_putChar
 GLOBAL sys_video_clearScreenColor
+global sys_video_putCharXY
+
 
 
 sys_read:
@@ -131,6 +133,16 @@ sys_video_putChar:
     mov rbp, rsp
     mov rax, 11         ; Número de syscall para putChar
     ; Los parámetros ya están en rdi (char), rsi (fg), rdx (bg)
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_video_putCharXY:
+    push rbp
+    mov rbp, rsp
+    mov rax, 12
+    ; rdi = c, rsi = x, rdx = y, rcx = fg, r8 = bg
     int 0x80
     mov rsp, rbp
     pop rbp

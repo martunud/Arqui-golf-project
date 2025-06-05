@@ -236,3 +236,14 @@ void video_clearScreenColor(uint32_t color) {
     cursorX = 0;
     cursorY = 0;
 }
+
+void video_putCharXY(char c, int x, int y, uint32_t fg, uint32_t bg) {
+    if (c < 0x20 || c > 0x7F) c = 0x20;
+    unsigned char *glyph = font8x16[(unsigned char)c];
+    for (int row = 0; row < FONT_HEIGHT; row++) {
+        for (int col = 0; col < FONT_WIDTH; col++) {
+            uint32_t color = (glyph[row] & (1 << (7 - col))) ? fg : bg;
+            video_putPixel(color, x + col, y + row);
+        }
+    }
+}

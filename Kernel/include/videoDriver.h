@@ -55,4 +55,6 @@ void video_printError(const char *errorMsg);
 
 void video_clearScreenColor(uint32_t color);
 
+void video_putCharXY(char c, int x, int y, uint32_t fg, uint32_t bg);
+
 #endif

@@ -443,3 +443,7 @@ void sleep(int ms) {
     // syscall.h: sys_sleep(milliseconds);
     sys_sleep(ms);
 }
+
+void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg) {
+    sys_video_putCharXY(c, x, y, fg, bg);
+}
