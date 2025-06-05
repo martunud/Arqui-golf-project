@@ -89,6 +89,25 @@ int isInsidePlayer(int x, int y, int p_x, int p_y) {
     return (dx*dx + dy*dy <= PLAYER_RADIUS * PLAYER_RADIUS);
 }
 
+// Simple pseudo-random number generator
+unsigned int next_rand = 12345;  // Seed value
+
+unsigned int rand() {
+    next_rand = next_rand * 1103515245 + 12345;
+    return (unsigned int)(next_rand / 65536) % 32768;
+}
+
+int rand_range(int min, int max) {
+    return min + (rand() % (max - min + 1));
+}
+
+// Check if two circles overlap
+int circles_overlap(int x1, int y1, int r1, int x2, int y2, int r2) {
+    int dx = x1 - x2;
+    int dy = y1 - y2;
+    return (dx*dx + dy*dy < (r1 + r2) * (r1 + r2));
+}
+
 
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_GREY);
@@ -118,11 +137,33 @@ void game_main_screen() {
 void game_start() {
     video_clearScreenColor(COLOR_BG_GREEN);  // Initial full clear
 
-    int ball_x = 100, ball_y = 300;
+    // Define minimum distances from screen edges
+    int margin = 50;
+    
+    // Generate random positions
+    int player_x, player_y, ball_x, ball_y, hole_x, hole_y;
+    
+    // Position the hole first (away from edges)
+    hole_x = rand_range(margin + 15, SCREEN_WIDTH - margin - 15);
+    hole_y = rand_range(UI_TOP_MARGIN + margin + 15, SCREEN_HEIGHT - margin - 15);
+    
+    // Position the player (away from hole and edges)
+    do {
+        player_x = rand_range(margin + PLAYER_RADIUS, SCREEN_WIDTH - margin - PLAYER_RADIUS);
+        player_y = rand_range(UI_TOP_MARGIN + margin + PLAYER_RADIUS, SCREEN_HEIGHT - margin - PLAYER_RADIUS);
+    } while (circles_overlap(player_x, player_y, PLAYER_RADIUS + 10, hole_x, hole_y, 15 + 10));
+    
+    // Position the ball (away from hole, player, and edges)
+    do {
+        ball_x = rand_range(margin + 5, SCREEN_WIDTH - margin - 5);
+        ball_y = rand_range(UI_TOP_MARGIN + margin + 5, SCREEN_HEIGHT - margin - 5);
+    } while (
+        circles_overlap(ball_x, ball_y, 5 + 10, hole_x, hole_y, 15 + 10) || 
+        circles_overlap(ball_x, ball_y, 5 + 10, player_x, player_y, PLAYER_RADIUS + 10)
+    );
+    
     int prev_ball_x = ball_x, prev_ball_y = ball_y;
-    int hole_x = 700, hole_y = 300;
     int power = 0, prev_power = 0;
-    int player_x = 50, player_y = 300;
     int prev_player_x = player_x, prev_player_y = player_y;
     char modo[] = "Solitario";
     int nivel = 1;
