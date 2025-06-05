@@ -8,7 +8,7 @@
 #define COLOR_BALL 0xFFFF00
 #define COLOR_HOLE 0x000000
 #define COLOR_TEXT_WHITE 0xFFFFFF
-#define COLOR_BG_BLACK 0x000000 // Add this line
+#define COLOR_BG_BLACK 0x000000 
 
 #define SCREEN_WIDTH 1024  // Aumentar según las dimensiones reales
 #define SCREEN_HEIGHT 768  // Aumentar según las dimensiones reales
@@ -82,15 +82,13 @@ int isInsideHole(int x, int y, int h_x, int h_y) {
     return (dx*dx + dy*dy <= 15*15); // 15 is hole radius
 }
 
-// Add this helper function to check if a point is inside the player
 int isInsidePlayer(int x, int y, int p_x, int p_y) {
     int dx = x - p_x;
     int dy = y - p_y;
     return (dx*dx + dy*dy <= PLAYER_RADIUS * PLAYER_RADIUS);
 }
 
-// Simple pseudo-random number generator
-unsigned int next_rand = 12345;  // Seed value
+unsigned int next_rand = 12345; 
 
 unsigned int rand() {
     next_rand = next_rand * 1103515245 + 12345;
@@ -101,7 +99,7 @@ int rand_range(int min, int max) {
     return min + (rand() % (max - min + 1));
 }
 
-// Check if two circles overlap
+//Chequear si sobreponen dos círculos
 int circles_overlap(int x1, int y1, int r1, int x2, int y2, int r2) {
     int dx = x1 - x2;
     int dy = y1 - y2;
@@ -120,7 +118,7 @@ void game_main_screen() {
 
     while (1) {
         char input = getchar();
-        printf("Input: %d\n", input); // Debugging line to see input values
+        printf("Input: %d\n", input); 
         if (input != 0) {
             if (input == '1') {
                 game_start();
@@ -134,26 +132,64 @@ void game_main_screen() {
     }
 }
 
-void game_start() {
-    video_clearScreenColor(COLOR_BG_GREEN);  // Initial full clear
+void drawFullWidthBar(int y, int height, uint32_t color) {
+    for (int j = y; j < y + height; j++) {
+        for (int i = 0; i < SCREEN_WIDTH; i++) {
+            video_putPixel(i, j, color);
+        }
+    }
+}
 
-    // Define minimum distances from screen edges
+void displayFullScreenMessage(const char *message, uint32_t textColor) {
+    for (int y = 0; y < SCREEN_HEIGHT; y++) {
+        for (int x = 0; x < SCREEN_WIDTH; x++) {
+            video_putPixel(x, y, COLOR_BG_BLACK);
+        }
+    }
+    
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+        video_putPixel(x, 10, textColor);
+        video_putPixel(x, SCREEN_HEIGHT - 10, textColor);
+    }
+    
+    for (int y = 10; y < SCREEN_HEIGHT - 10; y++) {
+        video_putPixel(10, y, textColor);
+        video_putPixel(SCREEN_WIDTH - 10, y, textColor);
+    }
+    
+    int centerX = SCREEN_WIDTH / 2;
+    int centerY = SCREEN_HEIGHT / 2;
+    
+    int messageLen = 0;
+    const char* temp = message;
+    while (*temp) { messageLen++; temp++; }
+    
+    drawTextWithBg(centerX - (messageLen * 4), centerY - 50, message, textColor, COLOR_BG_BLACK);
+    
+    for (int y = centerY - 30; y < centerY - 25; y++) {
+        for (int x = centerX - (messageLen * 5); x < centerX + (messageLen * 5); x++) {
+            video_putPixel(x, y, textColor);
+        }
+    }
+    
+    drawTextWithBg(centerX - 230, centerY + 50, "Presione ENTER para seguir jugando o ESC para salir", textColor, COLOR_BG_BLACK);
+}
+
+void game_start() {
+    video_clearScreenColor(COLOR_BG_GREEN);  
+
     int margin = 50;
     
-    // Generate random positions
     int player_x, player_y, ball_x, ball_y, hole_x, hole_y;
     
-    // Position the hole first (away from edges)
     hole_x = rand_range(margin + 15, SCREEN_WIDTH - margin - 15);
     hole_y = rand_range(UI_TOP_MARGIN + margin + 15, SCREEN_HEIGHT - margin - 15);
     
-    // Position the player (away from hole and edges)
     do {
         player_x = rand_range(margin + PLAYER_RADIUS, SCREEN_WIDTH - margin - PLAYER_RADIUS);
         player_y = rand_range(UI_TOP_MARGIN + margin + PLAYER_RADIUS, SCREEN_HEIGHT - margin - PLAYER_RADIUS);
     } while (circles_overlap(player_x, player_y, PLAYER_RADIUS + 10, hole_x, hole_y, 15 + 10));
     
-    // Position the ball (away from hole, player, and edges)
     do {
         ball_x = rand_range(margin + 5, SCREEN_WIDTH - margin - 5);
         ball_y = rand_range(UI_TOP_MARGIN + margin + 5, SCREEN_HEIGHT - margin - 5);
@@ -163,39 +199,34 @@ void game_start() {
     );
     
     int prev_ball_x = ball_x, prev_ball_y = ball_y;
-    int power = 0, prev_power = 0;
     int prev_player_x = player_x, prev_player_y = player_y;
     char modo[] = "Solitario";
-    int nivel = 1;
-
+    int golpes = 0; // Contador de golpes
+    int max_golpes = 6; // Máximo de golpes permitidos
+    
     int ball_vx = 0, ball_vy = 0;
     int player_angle = 0, prev_player_angle = 0;
 
     int ball_in_hole = 0;
     int puede_golpear = 1;
     int dx, dy, dist2, min_dist;
-    int needs_redraw = 1; // Start with initial draw
-    
-    // Initial draw of all elements
+
     drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
     drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
     drawCircle(ball_x, ball_y, 5, COLOR_BALL);
     
-    // Draw the full-width background bars
 drawFullWidthBar(0, 16, COLOR_BG_BLACK);  // Background for first text line
 drawFullWidthBar(16, 16, COLOR_BG_BLACK); // Background for second text line
 
-// Then draw text on top of them
-char power_str[40];
-sprintf(power_str, "Nivel: %d , Modo: %s ", nivel, modo);
-drawTextWithBg(10, 10, power_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
-drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+char status_str[40];
+sprintf(status_str, "Golpes: %d/%d, Modo: %s ", golpes, max_golpes, modo);
+drawTextWithBg(10, 10, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+drawTextWithBg(10, 30, "<- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
 
     while (1) {
  
         
         if (prev_ball_x != ball_x || prev_ball_y != ball_y) {
-            // Ball moved - erase old position and draw new one
             for (int y = -5; y <= 5; y++) {
                 for (int x = -5; x <= 5; x++) {
                     if (x*x + y*y <= 5*5) {
@@ -203,7 +234,6 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
                         int py = prev_ball_y + y;
                         
                         if (px >= 0 && px < SCREEN_WIDTH && py >= 0 && py < SCREEN_HEIGHT) {
-                            // Check if this pixel overlaps with player or hole
                             if (isInsidePlayer(px, py, player_x, player_y)) {
                                 video_putPixel(px, py, COLOR_PLAYER);
                             }
@@ -218,114 +248,58 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
                 }
             }
             
-            // Now draw the ball at its new position
             drawCircle(ball_x, ball_y, 5, COLOR_BALL);
         }
         
         if (prev_player_x != player_x || prev_player_y != player_y) {
-            // Player moved - erase old position and draw new one
             eraseCircle(prev_player_x, prev_player_y, PLAYER_RADIUS);
             drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
         }
 
-            int arrow_len = 18;
-        int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
-        int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
-
-        // Mostrar flecha siempre que la pelota no esté en el hoyo
-        if (!ball_in_hole) {
-            // Helper para evitar dibujar fuera de pantalla
-            #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= 0 && (y) < SCREEN_HEIGHT)
-            int arrow_points[5][2] = {
-                {arrow_x, arrow_y},
-                {arrow_x + 1, arrow_y},
-                {arrow_x, arrow_y + 1},
-                {arrow_x - 1, arrow_y},
-                {arrow_x, arrow_y - 1}
-            };
-            for (int i = 0; i < 5; i++) {
-                int px = arrow_points[i][0];
-                int py = arrow_points[i][1];
-                if (IN_SCREEN(px, py))
-                    video_putPixel(px, py, COLOR_TEXT_BLUE);
-            }
-            #undef IN_SCREEN
-        }
-        
-        // Handle direction indicator (blue arrow)
         if (prev_player_angle != player_angle || prev_player_x != player_x || prev_player_y != player_y) {
-            // Erase old arrow
             int prev_arrow_len = 18;
             int prev_arrow_x = prev_player_x + (cos_table[prev_player_angle] * prev_arrow_len) / 100;
             int prev_arrow_y = prev_player_y + (sin_table[prev_player_angle] * prev_arrow_len) / 100;
             
-            // Check if pixels are inside hole before erasing
-            if (isInsideHole(prev_arrow_x, prev_arrow_y, hole_x, hole_y))
-                video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_HOLE);
-            else
-                video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_BG_GREEN);
-                
-            if (isInsideHole(prev_arrow_x + 1, prev_arrow_y, hole_x, hole_y))
-                video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_HOLE);
-            else
-                video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_BG_GREEN);
-                
-            if (isInsideHole(prev_arrow_x, prev_arrow_y + 1, hole_x, hole_y))
-                video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_HOLE);
-            else
-                video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_BG_GREEN);
-                
-            if (isInsideHole(prev_arrow_x - 1, prev_arrow_y, hole_x, hole_y))
-                video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_HOLE);
-            else
-                video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_BG_GREEN);
-                
-            if (isInsideHole(prev_arrow_x, prev_arrow_y - 1, hole_x, hole_y))
-                video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_HOLE);
-            else
-                video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_BG_GREEN);
+            // Solo borrar si la flecha anterior no estaba en la región de texto
+            if (prev_arrow_y >= UI_TOP_MARGIN + 5) {
+                if (isInsideHole(prev_arrow_x, prev_arrow_y, hole_x, hole_y))
+                    video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_HOLE);
+                else
+                    video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_BG_GREEN);
+                    
+                if (isInsideHole(prev_arrow_x + 1, prev_arrow_y, hole_x, hole_y))
+                    video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_HOLE);
+                else
+                    video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_BG_GREEN);
+                    
+                if (isInsideHole(prev_arrow_x, prev_arrow_y + 1, hole_x, hole_y))
+                    video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_HOLE);
+                else
+                    video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_BG_GREEN);
+                    
+                if (isInsideHole(prev_arrow_x - 1, prev_arrow_y, hole_x, hole_y))
+                    video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_HOLE);
+                else
+                    video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_BG_GREEN);
+                    
+                if (isInsideHole(prev_arrow_x, prev_arrow_y - 1, hole_x, hole_y))
+                    video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_HOLE);
+                else
+                    video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_BG_GREEN);
+            }
             
-            // Draw new arrow
-            int arrow_len = 18;
-            int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
-            int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
-            
+            // Dibujar la nueva flecha (solo si la pelota está quieta y no en el hoyo)
             if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
-                // Helper para evitar dibujar fuera de pantalla
-                #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= 0 && (y) < SCREEN_HEIGHT)
-                int arrow_points[5][2] = {
-                    {arrow_x, arrow_y},
-                    {arrow_x + 1, arrow_y},
-                    {arrow_x, arrow_y + 1},
-                    {arrow_x - 1, arrow_y},
-                    {arrow_x, arrow_y - 1}
-                };
-                for (int i = 0; i < 5; i++) {
-                    int px = arrow_points[i][0];
-                    int py = arrow_points[i][1];
-                    if (IN_SCREEN(px, py))
-                        video_putPixel(px, py, COLOR_TEXT_BLUE);
-                }
-                #undef IN_SCREEN
+                drawPlayerArrow(player_x, player_y, player_angle, hole_x, hole_y);
             }
         }
         
-        // Update power text only if changed
-        if (prev_power != power) {  // Only redraw when power changes, not angle
-            // Redraw full-width background
-            drawFullWidthBar(0, 16, COLOR_BG_BLACK);
-            
-            sprintf(power_str, "Power: %d", power);  // Remove angle display
-            drawTextWithBg(10, 10, power_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
-        }
-        
-        // Save current state for next comparison
         prev_ball_x = ball_x;
         prev_ball_y = ball_y;
         prev_player_x = player_x;
-        prev_player_y = player_y;  // CORRECTED: Now properly saves player_y
+        prev_player_y = player_y;  
         prev_player_angle = player_angle;
-        prev_power = power;
 
         // ---- INPUT NO BLOQUEANTE ----
         char input = 0;
@@ -339,13 +313,11 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
             }
 
             // SOLO permitir controles de jugador si la pelota está quieta y no está en el hoyo
-            if (!ball_in_hole) {  // Allow player movement anytime the ball isn't in hole
-                if (input == (char)0x80) { // Flecha arriba: mover jugador
-                    // Store original position
+            if (!ball_in_hole) {  
+                if (input == (char)0x80) { 
                     int old_player_x = player_x;
                     int old_player_y = player_y;
                     
-                    // Try to move player
                     player_x += (cos_table[player_angle] * 10) / 100;
                     player_y += (sin_table[player_angle] * 10) / 100;
 
@@ -355,35 +327,56 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
                     if (player_y < PLAYER_RADIUS + UI_TOP_MARGIN) player_y = PLAYER_RADIUS + UI_TOP_MARGIN;
                     if (player_y >= SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS - 1;
                     
-                    // *** ADD THIS CODE: Check if player would overlap with hole ***
                     int hole_dx = player_x - hole_x;
                     int hole_dy = player_y - hole_y;
                     int hole_dist2 = hole_dx * hole_dx + hole_dy * hole_dy;
-                    int min_collision_dist = PLAYER_RADIUS + 15; // Player radius + hole radius
+                    int min_collision_dist = PLAYER_RADIUS + 15; 
                     
-                    // If player would overlap with hole, revert to previous position
                     if (hole_dist2 < min_collision_dist * min_collision_dist) {
                         player_x = old_player_x;
                         player_y = old_player_y;
                     }
                     
-                    // Si después de mover está cerca de la pelota, puede golpear
                     dx = ball_x - player_x;
                     dy = ball_y - player_y;
                     dist2 = dx*dx + dy*dy;
                     min_dist = PLAYER_RADIUS + 5;
                     if (dist2 <= min_dist * min_dist && puede_golpear) {
-                        int golpe_power = (power > 0) ? power : 20;
+                        int golpe_power = 30;                         
                         ball_vx = (cos_table[player_angle] * golpe_power) / 10;
                         ball_vy = (sin_table[player_angle] * golpe_power) / 10;
                         puede_golpear = 0;
+                        
+                        // Incrementar contador de golpes
+                        golpes++;
+                        
+                        // Verificar si se alcanzó el límite de golpes
+                        if (golpes >= max_golpes && !ball_in_hole) {
+                            char game_over_msg[80];
+                            sprintf(game_over_msg, "GAME OVER! Demasiados golpes. Presione ESPACIO para reiniciar o ESC para salir.");
+                            displayFullScreenMessage(game_over_msg, COLOR_TEXT_BLUE);
+                            
+                            while (1) {
+                                char input = 0;
+                                if (try_getchar(&input)) {
+                                    if (input == 27) { // ESC
+                                        clearScreen();
+                                        return;
+                                    } else if (input == ' ') { // Barra espaciadora
+                                        // Reiniciar el juego
+                                        clearScreen();
+                                        game_start();
+                                        return;
+                                    }
+                                }
+                                for (volatile int i = 0; i < 100000; i++);
+                            }
+                        }
                     }
                 } else if (input == (char)0x82) { // Flecha izquierda
                     player_angle = (player_angle + 35) % 36;
-                    needs_redraw = 1;
                 } else if (input == (char)0x83) { // Flecha derecha
                     player_angle = (player_angle + 1) % 36;
-                    needs_redraw = 1;
                 }
             }
         }
@@ -417,32 +410,72 @@ drawTextWithBg(10, 30, "W/S: power | <- y ->: direccion | UP: mover | ESC: salir
         int hx = ball_x - hole_x;
         int hy = ball_y - hole_y;
         int hole_dist2 = hx * hx + hy * hy;
-        if (hole_dist2 <= 100 && !ball_in_hole) {
+        if (hole_dist2 <= 100 && !ball_in_hole) {  
+            drawFullWidthBar(0, 16, COLOR_BG_BLACK);
+            drawTextWithBg(10, 10, "PELOTA EN HOYO!", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+            sleep(500); 
+            
             ball_in_hole = 1;
             ball_vx = 0;
             ball_vy = 0;
-            drawText(300, 100, "¡Hoyo! Presione ESC para salir", COLOR_TEXT_BLUE);
+            
+            // Mover la pelota exactamente al centro del hoyo para mejor visualización
+            ball_x = hole_x;
+            ball_y = hole_y;
+            
+            char victory_msg[80];
+            sprintf(victory_msg, "VICTORIA! Hoyo completado en %d golpes. Presione ESPACIO para reiniciar o ESC para salir.", golpes);
+            displayFullScreenMessage(victory_msg, COLOR_TEXT_BLUE);
+            
             while (1) {
-                char esc_input = 0;
-                if (try_getchar(&esc_input) && esc_input == 27) {
-                    clearScreen();
-                    return;
+                char input = 0;
+                if (try_getchar(&input)) {
+                    if (input == 27) { // ESC
+                        clearScreen();
+                        return;
+                    } else if (input == ' ' || input == '\n' || input == '\r') { // Espaciadora, Enter
+                        // Reiniciar el juego
+                        clearScreen();
+                        game_start();
+                        return;
+                    }
                 }
                 for (volatile int i = 0; i < 100000; i++);
             }
         }
 
-        // Optimize your sleep time for smoother animation
         sleep(16);  // ~60 FPS (16.7ms per frame)
     }
 }
 
-// Add this function after your other drawing helper functions
-void drawFullWidthBar(int y, int height, uint32_t color) {
-    for (int j = y; j < y + height; j++) {
-        for (int i = 0; i < SCREEN_WIDTH; i++) {
-            video_putPixel(i, j, color);
+// Actualiza la función que dibuja la flecha
+void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y) {
+    int arrow_len = 18;
+    int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
+    int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
+    
+    // No dibujar la flecha si está en la región de texto UI (parte superior de la pantalla)
+    if (arrow_y < UI_TOP_MARGIN + 5) {
+        return;
+    }
+    
+    #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= UI_TOP_MARGIN && (y) < SCREEN_HEIGHT)
+    int arrow_points[5][2] = {
+        {arrow_x, arrow_y},
+        {arrow_x + 1, arrow_y},
+        {arrow_x, arrow_y + 1},
+        {arrow_x - 1, arrow_y},
+        {arrow_x, arrow_y - 1}
+    };
+    
+    for (int i = 0; i < 5; i++) {
+        int px = arrow_points[i][0];
+        int py = arrow_points[i][1];
+        if (IN_SCREEN(px, py)) {
+            if (!isInsideHole(px, py, hole_x, hole_y)) { 
+                video_putPixel(px, py, COLOR_TEXT_BLUE);
+            }
         }
     }
+    #undef IN_SCREEN
 }
-
