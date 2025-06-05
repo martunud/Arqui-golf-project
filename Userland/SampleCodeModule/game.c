@@ -10,15 +10,29 @@
 #define COLOR_TEXT_WHITE 0xFFFFFF
 #define COLOR_BG_BLACK 0x000000 
 
-#define SCREEN_WIDTH 1024  // Aumentar según las dimensiones reales
-#define SCREEN_HEIGHT 768  // Aumentar según las dimensiones reales
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
 #define UI_TOP_MARGIN 32
-
 #define PLAYER_RADIUS 10
 
-// Tabla de seno y coseno para 36 ángulos (cada 10 grados)
 const int cos_table[36] = {100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17,0,17,34,50,64,77,87,94,98};
 const int sin_table[36] = {0,17,34,50,64,77,87,94,98,100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17};
+
+typedef struct {
+    int x, y, prev_x, prev_y;
+    int angle, prev_angle;
+    int golpes;
+    int puede_golpear;
+    int color;
+    int arrow_color;
+    int ball_x, ball_y, prev_ball_x, prev_ball_y;
+    int ball_vx, ball_vy;
+    int ball_in_hole;
+    int ball_color;
+    // Controles
+    char control_up, control_left, control_right;
+    char *name;
+} Player;
 
 void drawCircle(int cx, int cy, int radius, uint32_t color) {
     for (int y = -radius; y <= radius; y++) {
@@ -70,6 +84,74 @@ void eraseTextArea(int x, int y, int width, int height) {
     }
 }
 
+void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_players, int hole_x, int hole_y) {
+    for (int y = -5; y <= 5; y++) {
+        for (int x = -5; x <= 5; x++) {
+            if (x*x + y*y <= 5*5) {
+                int px = prev_ball_x + x;
+                int py = prev_ball_y + y;
+                if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
+                    int painted = 0;
+                    
+                    // Si hay un jugador en ese pixel, repintarlo
+                    for (int j = 0; j < num_players; j++) {
+                        if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
+                            video_putPixel(px, py, players[j].color);
+                            painted = 1;
+                            break;
+                        }
+                    }
+                    
+                    // Si hay un hoyo, repintar el hoyo
+                    if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
+                        video_putPixel(px, py, COLOR_HOLE);
+                        painted = 1;
+                    }
+                    
+                    // Si no hay nada más ahí, pintar el fondo
+                    if (!painted) {
+                        video_putPixel(px, py, COLOR_BG_GREEN);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, int hole_x, int hole_y) {
+    for (int y = -PLAYER_RADIUS; y <= PLAYER_RADIUS; y++) {
+        for (int x = -PLAYER_RADIUS; x <= PLAYER_RADIUS; x++) {
+            if (x*x + y*y <= PLAYER_RADIUS*PLAYER_RADIUS) {
+                int px = prev_x + x;
+                int py = prev_y + y;
+                if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
+                    int painted = 0;
+                    
+                    // Si hay una pelota en ese pixel, la repinto
+                    for (int j = 0; j < num_players; j++) {
+                        if ((px - players[j].ball_x)*(px - players[j].ball_x) + (py - players[j].ball_y)*(py - players[j].ball_y) <= 5*5) {
+                            video_putPixel(px, py, players[j].ball_color);
+                            painted = 1;
+                            break;
+                        }
+                    }
+                    
+                    // Si hay hoyo, repinto hoyo
+                    if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
+                        video_putPixel(px, py, COLOR_HOLE);
+                        painted = 1;
+                    }
+                    
+                    // Si no, fondo
+                    if (!painted) {
+                        video_putPixel(px, py, COLOR_BG_GREEN);
+                    }
+                }
+            }
+        }
+    }
+}
+
 // Add this helper function near the top of your file:
 int isInsideHole(int x, int y, int h_x, int h_y) {
     int dx = x - h_x;
@@ -99,48 +181,6 @@ int circles_overlap(int x1, int y1, int r1, int x2, int y2, int r2) {
     int dx = x1 - x2;
     int dy = y1 - y2;
     return (dx*dx + dy*dy < (r1 + r2) * (r1 + r2));
-}
-
-
-void game_main_screen() {
-    video_clearScreenColor(COLOR_BG_GREY);
-
-    const char *lines[] = {
-        "Bienvenido a Pongis-Golf",
-        "Presione 1 para jugar",
-        "Presione ESC para salir",
-        "Presione CTRL+R para tomar un snapshot"
-    };
-    int num_lines = 4;
-    int line_height = 20; // Más compacto
-    int font_width = 8;   // Asumiendo fuente monoespaciada
-    int font_height = 16; // Asumiendo altura de fuente
-
-    // Calcular alto total del bloque de texto
-    int total_height = num_lines * line_height;
-    int startY = (SCREEN_HEIGHT - total_height) / 2;
-
-    for (int i = 0; i < num_lines; i++) {
-        int text_len = strlen(lines[i]);
-        int text_width = text_len * font_width;
-        int x = (SCREEN_WIDTH - text_width) / 2;
-        int y = startY + i * line_height;
-        drawText(x, y, lines[i], COLOR_TEXT_BLUE);
-    }
-
-    while (1) {
-        char input = getchar();
-        if (input != 0) {
-            if (input == '1') {
-                game_start();
-                break;
-            } else if (input == 27) {
-                clearScreen();
-                return;
-            }
-        }
-        for (volatile int i = 0; i < 100000; i++); // delay
-    }
 }
 
 void drawFullWidthBar(int y, int height, uint32_t color) {
@@ -182,285 +222,10 @@ void displayFullScreenMessage(const char *message, uint32_t textColor) {
             video_putPixel(x, y, textColor);
         }
     }
-    
-    drawTextWithBg(centerX - 230, centerY + 50, "Presione ENTER para seguir jugando o ESC para salir", textColor, COLOR_BG_BLACK);
 }
 
-void game_start() {
-    video_clearScreenColor(COLOR_BG_GREEN);  
-
-    int margin = 50;
-    
-    int player_x, player_y, ball_x, ball_y, hole_x, hole_y;
-    
-    hole_x = rand_range(margin + 15, SCREEN_WIDTH - margin - 15);
-    hole_y = rand_range(UI_TOP_MARGIN + margin + 15, SCREEN_HEIGHT - margin - 15);
-    
-    do {
-        player_x = rand_range(margin + PLAYER_RADIUS, SCREEN_WIDTH - margin - PLAYER_RADIUS);
-        player_y = rand_range(UI_TOP_MARGIN + margin + PLAYER_RADIUS, SCREEN_HEIGHT - margin - PLAYER_RADIUS);
-    } while (circles_overlap(player_x, player_y, PLAYER_RADIUS + 10, hole_x, hole_y, 15 + 10));
-    
-    do {
-        ball_x = rand_range(margin + 5, SCREEN_WIDTH - margin - 5);
-        ball_y = rand_range(UI_TOP_MARGIN + margin + 5, SCREEN_HEIGHT - margin - 5);
-    } while (
-        circles_overlap(ball_x, ball_y, 5 + 10, hole_x, hole_y, 15 + 10) || 
-        circles_overlap(ball_x, ball_y, 5 + 10, player_x, player_y, PLAYER_RADIUS + 10)
-    );
-    
-    int prev_ball_x = ball_x, prev_ball_y = ball_y;
-    int prev_player_x = player_x, prev_player_y = player_y;
-    char modo[] = "Solitario";
-    int golpes = 0; // Contador de golpes
-    int max_golpes = 6; // Máximo de golpes permitidos
-    
-    int ball_vx = 0, ball_vy = 0;
-    int player_angle = 0, prev_player_angle = 0;
-
-    int ball_in_hole = 0;
-    int puede_golpear = 1;
-    int dx, dy, dist2, min_dist;
-
-    drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
-    drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
-    drawCircle(ball_x, ball_y, 5, COLOR_BALL);
-    
-drawFullWidthBar(0, 16, COLOR_BG_BLACK);  // Background for first text line
-drawFullWidthBar(16, 16, COLOR_BG_BLACK); // Background for second text line
-
-char status_str[40];
-sprintf(status_str, "Golpes: %d/%d, Modo: %s ", golpes, max_golpes, modo);
-drawTextWithBg(10, 10, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
-drawTextWithBg(10, 30, "<- y ->: direccion | UP: mover | ESC: salir", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
-
-    while (1) {
- 
-        
-        if (prev_ball_x != ball_x || prev_ball_y != ball_y) {
-            for (int y = -5; y <= 5; y++) {
-                for (int x = -5; x <= 5; x++) {
-                    if (x*x + y*y <= 5*5) {
-                        int px = prev_ball_x + x;
-                        int py = prev_ball_y + y;
-                        
-                        if (px >= 0 && px < SCREEN_WIDTH && py >= 0 && py < SCREEN_HEIGHT) {
-                            if (isInsidePlayer(px, py, player_x, player_y)) {
-                                video_putPixel(px, py, COLOR_PLAYER);
-                            }
-                            else if (isInsideHole(px, py, hole_x, hole_y)) {
-                                video_putPixel(px, py, COLOR_HOLE);
-                            }
-                            else {
-                                video_putPixel(px, py, COLOR_BG_GREEN);
-                            }
-                        }
-                    }
-                }
-            }
-            
-            drawCircle(ball_x, ball_y, 5, COLOR_BALL);
-        }
-        
-        if (prev_player_x != player_x || prev_player_y != player_y) {
-            eraseCircle(prev_player_x, prev_player_y, PLAYER_RADIUS);
-            drawCircle(player_x, player_y, PLAYER_RADIUS, COLOR_PLAYER);
-        }
-
-        if (prev_player_angle != player_angle || prev_player_x != player_x || prev_player_y != player_y) {
-            int prev_arrow_len = 18;
-            int prev_arrow_x = prev_player_x + (cos_table[prev_player_angle] * prev_arrow_len) / 100;
-            int prev_arrow_y = prev_player_y + (sin_table[prev_player_angle] * prev_arrow_len) / 100;
-            
-            // Solo borrar si la flecha anterior no estaba en la región de texto
-            if (prev_arrow_y >= UI_TOP_MARGIN + 5) {
-                if (isInsideHole(prev_arrow_x, prev_arrow_y, hole_x, hole_y))
-                    video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_HOLE);
-                else
-                    video_putPixel(prev_arrow_x, prev_arrow_y, COLOR_BG_GREEN);
-                    
-                if (isInsideHole(prev_arrow_x + 1, prev_arrow_y, hole_x, hole_y))
-                    video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_HOLE);
-                else
-                    video_putPixel(prev_arrow_x + 1, prev_arrow_y, COLOR_BG_GREEN);
-                    
-                if (isInsideHole(prev_arrow_x, prev_arrow_y + 1, hole_x, hole_y))
-                    video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_HOLE);
-                else
-                    video_putPixel(prev_arrow_x, prev_arrow_y + 1, COLOR_BG_GREEN);
-                    
-                if (isInsideHole(prev_arrow_x - 1, prev_arrow_y, hole_x, hole_y))
-                    video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_HOLE);
-                else
-                    video_putPixel(prev_arrow_x - 1, prev_arrow_y, COLOR_BG_GREEN);
-                    
-                if (isInsideHole(prev_arrow_x, prev_arrow_y - 1, hole_x, hole_y))
-                    video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_HOLE);
-                else
-                    video_putPixel(prev_arrow_x, prev_arrow_y - 1, COLOR_BG_GREEN);
-            }
-            
-            // Dibujar la nueva flecha (solo si la pelota está quieta y no en el hoyo)
-            if (ball_vx == 0 && ball_vy == 0 && !ball_in_hole) {
-                drawPlayerArrow(player_x, player_y, player_angle, hole_x, hole_y);
-            }
-        }
-        
-        prev_ball_x = ball_x;
-        prev_ball_y = ball_y;
-        prev_player_x = player_x;
-        prev_player_y = player_y;  
-        prev_player_angle = player_angle;
-
-        // ---- INPUT NO BLOQUEANTE ----
-        char input = 0;
-        if (try_getchar(&input)) {
-            if (input == 27) { // ESC
-                clearScreen();
-                break;
-            } else if ((unsigned char)input == 0x12) { // CTRL+R (código 0x12)
-                takeRegistersSnapshot();
-                // No mostrar ningún mensaje - simplemente tomar el snapshot
-            }
-
-            // SOLO permitir controles de jugador si la pelota está quieta y no está en el hoyo
-            if (!ball_in_hole) {  
-                if (input == (char)0x80) { 
-                    int old_player_x = player_x;
-                    int old_player_y = player_y;
-                    
-                    player_x += (cos_table[player_angle] * 10) / 100;
-                    player_y += (sin_table[player_angle] * 10) / 100;
-
-                    // Evitar que salga de pantalla
-                    if (player_x < PLAYER_RADIUS) player_x = PLAYER_RADIUS;
-                    if (player_x >= SCREEN_WIDTH - PLAYER_RADIUS) player_x = SCREEN_WIDTH - PLAYER_RADIUS - 1;
-                    if (player_y < PLAYER_RADIUS + UI_TOP_MARGIN) player_y = PLAYER_RADIUS + UI_TOP_MARGIN;
-                    if (player_y >= SCREEN_HEIGHT - PLAYER_RADIUS) player_y = SCREEN_HEIGHT - PLAYER_RADIUS - 1;
-                    
-                    int hole_dx = player_x - hole_x;
-                    int hole_dy = player_y - hole_y;
-                    int hole_dist2 = hole_dx * hole_dx + hole_dy * hole_dy;
-                    int min_collision_dist = PLAYER_RADIUS + 15; 
-                    
-                    if (hole_dist2 < min_collision_dist * min_collision_dist) {
-                        player_x = old_player_x;
-                        player_y = old_player_y;
-                    }
-                    
-                    dx = ball_x - player_x;
-                    dy = ball_y - player_y;
-                    dist2 = dx*dx + dy*dy;
-                    min_dist = PLAYER_RADIUS + 5;
-                    if (dist2 <= min_dist * min_dist && puede_golpear) {
-                        int golpe_power = 30;                         
-                        ball_vx = (cos_table[player_angle] * golpe_power) / 10;
-                        ball_vy = (sin_table[player_angle] * golpe_power) / 10;
-                        puede_golpear = 0;
-                        
-                        // Incrementar contador de golpes
-                        golpes++;
-                        
-                        // Verificar si se alcanzó el límite de golpes
-                        if (golpes >= max_golpes && !ball_in_hole) {
-                            char game_over_msg[80];
-                            sprintf(game_over_msg, "GAME OVER! Demasiados golpes. Presione ESPACIO para reiniciar o ESC para salir.");
-                            displayFullScreenMessage(game_over_msg, COLOR_TEXT_BLUE);
-                            
-                            while (1) {
-                                char input = 0;
-                                if (try_getchar(&input)) {
-                                    if (input == 27) { // ESC
-                                        clearScreen();
-                                        return;
-                                    } else if (input == ' ') { // Barra espaciadora
-                                        // Reiniciar el juego
-                                        clearScreen();
-                                        game_start();
-                                        return;
-                                    }
-                                }
-                                for (volatile int i = 0; i < 100000; i++);
-                            }
-                        }
-                    }
-                } else if (input == (char)0x82) { // Flecha izquierda
-                    player_angle = (player_angle + 35) % 36;
-                } else if (input == (char)0x83) { // Flecha derecha
-                    player_angle = (player_angle + 1) % 36;
-                }
-            }
-        }
-
-        // Permitir volver a golpear solo si el jugador está lejos de la pelota
-        dx = ball_x - player_x;
-        dy = ball_y - player_y;
-        dist2 = dx*dx + dy*dy;
-        min_dist = PLAYER_RADIUS + 5;
-        if (dist2 > min_dist * min_dist) {
-            puede_golpear = 1;
-        }
-
-        // ---- FÍSICA DE LA PELOTA ----
-        if ((ball_vx != 0 || ball_vy != 0) && !ball_in_hole) {
-            ball_x += ball_vx / 10;
-            ball_y += ball_vy / 10;
-            ball_vx = (ball_vx * 95) / 100;
-            ball_vy = (ball_vy * 95) / 100;
-            if (ball_vx < 1 && ball_vx > -1) ball_vx = 0;
-            if (ball_vy < 1 && ball_vy > -1) ball_vy = 0;
-        }
-
-        // Rebote simple en bordes
-        if (ball_x < 5) { ball_x = 5; ball_vx = -ball_vx; }
-        if (ball_x > SCREEN_WIDTH - 5) { ball_x = SCREEN_WIDTH - 5; ball_vx = -ball_vx; }
-        if (ball_y < UI_TOP_MARGIN + 5) { ball_y = UI_TOP_MARGIN + 5; ball_vy = -ball_vy; }
-        if (ball_y > SCREEN_HEIGHT - 5) { ball_y = SCREEN_HEIGHT - 5; ball_vy = -ball_vy; }
-
-        // Verificar si la pelota llegó al hoyo
-        int hx = ball_x - hole_x;
-        int hy = ball_y - hole_y;
-        int hole_dist2 = hx * hx + hy * hy;
-        if (hole_dist2 <= 100 && !ball_in_hole) {  
-            drawFullWidthBar(0, 16, COLOR_BG_BLACK);
-            drawTextWithBg(10, 10, "PELOTA EN HOYO!", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
-            sleep(500); 
-            
-            ball_in_hole = 1;
-            ball_vx = 0;
-            ball_vy = 0;
-            
-            // Mover la pelota exactamente al centro del hoyo para mejor visualización
-            ball_x = hole_x;
-            ball_y = hole_y;
-            
-            char victory_msg[80];
-            sprintf(victory_msg, "VICTORIA! Hoyo completado en %d golpes. Presione ESPACIO para reiniciar o ESC para salir.", golpes);
-            displayFullScreenMessage(victory_msg, COLOR_TEXT_BLUE);
-            
-            while (1) {
-                char input = 0;
-                if (try_getchar(&input)) {
-                    if (input == 27) { // ESC
-                        clearScreen();
-                        return;
-                    } else if (input == ' ' || input == '\n' || input == '\r') { // Espaciadora, Enter
-                        // Reiniciar el juego
-                        clearScreen();
-                        game_start();
-                        return;
-                    }
-                }
-                for (volatile int i = 0; i < 100000; i++);
-            }
-        }
-
-        sleep(16);  // ~60 FPS (16.7ms per frame)
-    }
-}
-
-// Actualiza la función que dibuja la flecha
-void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y) {
+// Dibuja la flecha del jugador con el color específico
+void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y, int arrow_color) {
     int arrow_len = 18;
     int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
     int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
@@ -471,22 +236,387 @@ void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, i
     }
     
     #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= UI_TOP_MARGIN && (y) < SCREEN_HEIGHT)
+    
+    // Puntos de la flecha (forma de cruz)
     int arrow_points[5][2] = {
-        {arrow_x, arrow_y},
-        {arrow_x + 1, arrow_y},
-        {arrow_x, arrow_y + 1},
-        {arrow_x - 1, arrow_y},
-        {arrow_x, arrow_y - 1}
+        {arrow_x, arrow_y},         // Centro
+        {arrow_x + 1, arrow_y},     // Derecha
+        {arrow_x, arrow_y + 1},     // Abajo
+        {arrow_x - 1, arrow_y},     // Izquierda
+        {arrow_x, arrow_y - 1}      // Arriba
     };
     
+    // Dibujar cada punto de la flecha
     for (int i = 0; i < 5; i++) {
         int px = arrow_points[i][0];
         int py = arrow_points[i][1];
         if (IN_SCREEN(px, py)) {
+            // Solo dibujar si no está dentro del hoyo
             if (!isInsideHole(px, py, hole_x, hole_y)) { 
-                video_putPixel(px, py, COLOR_TEXT_BLUE);
+                video_putPixel(px, py, arrow_color);
             }
         }
     }
     #undef IN_SCREEN
+}
+
+void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y) {
+    int prev_arrow_len = 18;
+    int prev_arrow_x = prev_x + (cos_table[prev_angle] * prev_arrow_len) / 100;
+    int prev_arrow_y = prev_y + (sin_table[prev_angle] * prev_arrow_len) / 100;
+    
+    if (prev_arrow_y >= UI_TOP_MARGIN + 5) {
+        #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= UI_TOP_MARGIN && (y) < SCREEN_HEIGHT)
+        int arrow_points[5][2] = {
+            {prev_arrow_x, prev_arrow_y},
+            {prev_arrow_x + 1, prev_arrow_y},
+            {prev_arrow_x, prev_arrow_y + 1},
+            {prev_arrow_x - 1, prev_arrow_y},
+            {prev_arrow_x, prev_arrow_y - 1}
+        };
+        
+        for (int i = 0; i < 5; i++) {
+            int px = arrow_points[i][0];
+            int py = arrow_points[i][1];
+            if (IN_SCREEN(px, py)) {
+                // Si está dentro del hoyo, pintarlo como hoyo
+                if (isInsideHole(px, py, hole_x, hole_y)) {
+                    video_putPixel(px, py, COLOR_HOLE);
+                } else {
+                    // Si no, pintar como fondo
+                    video_putPixel(px, py, COLOR_BG_GREEN);
+                }
+            }
+        }
+        #undef IN_SCREEN
+    }
+}
+
+void drawTextFixed(int x, int y, const char *text, uint32_t color, uint32_t bg) {
+    int i = 0;
+    while (text[i]) {
+        video_putCharXY(x + i * 8, y, text[i], color, bg);
+        i++;
+    }
+}
+
+void game_main_screen() {
+    video_clearScreenColor(COLOR_BG_GREY);
+
+    const char *lines[] = {
+        "Bienvenido a Pongis-Golf",
+        "Presione 1 para jugar",
+        "Presione 2 para dos jugadores",
+        "Presione ESC para salir",
+        "Presione CTRL+R para tomar un snapshot"
+    };
+    int num_lines = 5;
+    int line_height = 20;
+    int font_width = 8;
+    int font_height = 16;
+
+    int total_height = num_lines * line_height;
+    int startY = (SCREEN_HEIGHT - total_height) / 2;
+
+    for (int i = 0; i < num_lines; i++) {
+        int text_len = strlen(lines[i]);
+        int text_width = text_len * font_width;
+        int x = (SCREEN_WIDTH - text_width) / 2;
+        int y = startY + i * line_height;
+        drawText(x, y, lines[i], COLOR_TEXT_BLUE);
+    }
+
+    while (1) {
+        char input = getchar();
+        if (input != 0) {
+            if (input == '1') {
+                game_start(1);
+                break;
+            } else if (input == '2') {
+                game_start(2);
+                break;
+            } else if (input == 27) {
+                clearScreen();
+                return;
+            }
+        }
+        for (volatile int i = 0; i < 100000; i++);
+    }
+}
+
+void game_start(int num_players) {
+    video_clearScreenColor(COLOR_BG_GREEN);
+
+    int margin = 50;
+    int hole_x = rand_range(margin + 15, SCREEN_WIDTH - margin - 15);
+    int hole_y = rand_range(UI_TOP_MARGIN + margin + 15, SCREEN_HEIGHT - margin - 15);
+
+    Player players[2] = {0};
+
+    // --- Configuración de jugadores ---
+    // Jugador 1 (blanco)
+    players[0].color = COLOR_PLAYER;         // Color del jugador
+    players[0].arrow_color = COLOR_TEXT_BLUE; // Color de la flecha (azul)
+    players[0].ball_color = COLOR_BALL;      // Color de la pelota (amarillo)
+    players[0].control_up = (char)0x80;      // Flecha arriba
+    players[0].control_left = (char)0x82;    // Flecha izquierda
+    players[0].control_right = (char)0x83;   // Flecha derecha
+    players[0].name = "Blanco";
+
+    // Jugador 2 (azul) - Solo se configura si hay dos jugadores
+    if (num_players == 2) {
+        players[1].color = 0x0000FF;         // Color del jugador (azul)
+        players[1].arrow_color = 0xFFA500;   // Color de la flecha (naranja)
+        players[1].ball_color = 0xFFA500;    // Color de la pelota (naranja)
+        players[1].control_up = 'w';         // W
+        players[1].control_left = 'a';       // A
+        players[1].control_right = 'd';      // D
+        players[1].name = "Azul";
+    }
+
+    // --- Inicialización de posiciones ---
+    for (int i = 0; i < num_players; i++) {
+        do {
+            players[i].x = rand_range(margin + PLAYER_RADIUS, SCREEN_WIDTH - margin - PLAYER_RADIUS);
+            players[i].y = rand_range(UI_TOP_MARGIN + margin + PLAYER_RADIUS, SCREEN_HEIGHT - margin - PLAYER_RADIUS);
+        } while (circles_overlap(players[i].x, players[i].y, PLAYER_RADIUS + 10, hole_x, hole_y, 15 + 10) ||
+                 (i == 1 && circles_overlap(players[0].x, players[0].y, PLAYER_RADIUS * 2 + 10, players[1].x, players[1].y, PLAYER_RADIUS + 10)));
+
+        do {
+            players[i].ball_x = rand_range(margin + 5, SCREEN_WIDTH - margin - 5);
+            players[i].ball_y = rand_range(UI_TOP_MARGIN + margin + 5, SCREEN_HEIGHT - margin - 5);
+        } while (
+            circles_overlap(players[i].ball_x, players[i].ball_y, 5 + 10, hole_x, hole_y, 15 + 10) ||
+            circles_overlap(players[i].ball_x, players[i].ball_y, 5 + 10, players[i].x, players[i].y, PLAYER_RADIUS + 10) ||
+            (i == 1 && circles_overlap(players[0].ball_x, players[0].ball_y, 5 + 10, players[1].ball_x, players[1].ball_y, 5 + 10))
+        );
+
+        players[i].prev_x = players[i].x;
+        players[i].prev_y = players[i].y;
+        players[i].prev_angle = players[i].angle = 0;
+        players[i].prev_ball_x = players[i].ball_x;
+        players[i].prev_ball_y = players[i].ball_y;
+        players[i].golpes = 0;
+        players[i].puede_golpear = 1;
+        players[i].ball_vx = 0;
+        players[i].ball_vy = 0;
+        players[i].ball_in_hole = 0;
+    }
+
+    // --- Dibujo inicial ---
+    drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
+    for (int i = 0; i < num_players; i++) {
+        drawCircle(players[i].x, players[i].y, PLAYER_RADIUS, players[i].color);
+        drawCircle(players[i].ball_x, players[i].ball_y, 5, players[i].ball_color);
+        drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, players[i].arrow_color);
+    }
+
+    drawFullWidthBar(0, 16, COLOR_BG_BLACK);
+    drawFullWidthBar(16, 16, COLOR_BG_BLACK);
+
+    int last_golpes_p1 = -1, last_golpes_p2 = -1;
+    char status_str[80];
+
+    if (num_players == 1) {
+        sprintf(status_str, "Golpes: %d, Modo: Solitario", players[0].golpes);
+        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+        last_golpes_p1 = players[0].golpes;
+    } else {
+        sprintf(status_str, "P1: %d | P2: %d   ESC: salir", players[0].golpes, players[1].golpes);
+        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+        last_golpes_p1 = players[0].golpes;
+        last_golpes_p2 = players[1].golpes;
+    }
+
+    int ganador = -1;
+    while (1) {
+        // --- Borrar elementos en orden inverso al dibujo ---
+        for (int i = 0; i < num_players; i++) {
+            // 1. Primero borrar flechas (están encima)
+            eraseArrow(players[i].prev_x, players[i].prev_y, players[i].prev_angle, hole_x, hole_y);
+            
+            // 2. Borrar pelotas
+            eraseBallSmart(players[i].prev_ball_x, players[i].prev_ball_y, players, num_players, hole_x, hole_y);
+            
+            // 3. Borrar jugadores
+            erasePlayerSmart(players[i].prev_x, players[i].prev_y, players, num_players, hole_x, hole_y);
+        }
+        // --- Actualizar barra superior si es necesario ---
+        if (num_players == 1) {
+            if (players[0].golpes != last_golpes_p1) {
+                drawFullWidthBar(0, 16, COLOR_BG_BLACK);
+                sprintf(status_str, "Golpes: %d, Modo: Solitario", players[0].golpes);
+                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+                last_golpes_p1 = players[0].golpes;
+            }
+        } else {
+            if (players[0].golpes != last_golpes_p1 || players[1].golpes != last_golpes_p2) {
+                drawFullWidthBar(0, 16, COLOR_BG_BLACK);
+                sprintf(status_str, "P1: %d | P2: %d   ESC: salir", players[0].golpes, players[1].golpes);
+                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+                last_golpes_p1 = players[0].golpes;
+                last_golpes_p2 = players[1].golpes;
+            }
+        }
+
+        // --- INPUT NO BLOQUEANTE ---
+        char input = 0;
+        if (try_getchar(&input)) {
+            if (input == 27) { clearScreen(); break; }
+            if ((unsigned char)input == 0x12) { takeRegistersSnapshot(); }
+
+            for (int i = 0; i < num_players; i++) {
+                if (!players[i].ball_in_hole) {
+                    char up = players[i].control_up, left = players[i].control_left, right = players[i].control_right;
+                    if ((i == 1 && (input == up || input == up - 32)) || (i == 0 && input == up)) {
+                    int old_x = players[i].x, old_y = players[i].y;
+                    // Aumentar la velocidad de 10 a 20 para movimiento más rápido
+                    players[i].x += (cos_table[players[i].angle] * 20) / 100;
+                    players[i].y += (sin_table[players[i].angle] * 20) / 100;
+                    if (players[i].x < PLAYER_RADIUS) players[i].x = PLAYER_RADIUS;
+                    if (players[i].x > SCREEN_WIDTH - PLAYER_RADIUS) players[i].x = SCREEN_WIDTH - PLAYER_RADIUS;
+                    if (players[i].y < PLAYER_RADIUS + UI_TOP_MARGIN) players[i].y = PLAYER_RADIUS + UI_TOP_MARGIN;
+                    if (players[i].y > SCREEN_HEIGHT - PLAYER_RADIUS) players[i].y = SCREEN_HEIGHT - PLAYER_RADIUS;
+                    int dx = players[i].x - hole_x, dy = players[i].y - hole_y;
+                    if (dx*dx + dy*dy < (PLAYER_RADIUS + 15)*(PLAYER_RADIUS + 15)) {
+                        players[i].x = old_x; players[i].y = old_y;
+                    }
+                } else if ((i == 1 && (input == left || input == left - 32)) || (i == 0 && input == left)) {
+                    // Aumentar la velocidad de rotación de 1 a 2 grados para giro más rápido
+                    players[i].angle = (players[i].angle + 34) % 36;  // Rotación más rápida (2 grados)
+                } else if ((i == 1 && (input == right || input == right - 32)) || (i == 0 && input == right)) {
+                    players[i].angle = (players[i].angle + 2) % 36;   // Rotación más rápida (2 grados)
+                }
+
+                    // Golpe a la pelota
+                    int dx = players[i].ball_x - players[i].x, dy = players[i].ball_y - players[i].y;
+                    if (dx*dx + dy*dy <= (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5) && players[i].puede_golpear) {
+                        int golpe_power = 30;
+                        players[i].ball_vx = (cos_table[players[i].angle] * golpe_power) / 10;
+                        players[i].ball_vy = (sin_table[players[i].angle] * golpe_power) / 10;
+                        players[i].puede_golpear = 0;
+                        players[i].golpes++;
+                    }
+                }
+            }
+        }
+
+        // Permitir volver a golpear solo si el jugador está lejos de su pelota
+        for (int i = 0; i < num_players; i++) {
+            int dx = players[i].ball_x - players[i].x, dy = players[i].ball_y - players[i].y;
+            if (dx*dx + dy*dy > (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5)) players[i].puede_golpear = 1;
+        }
+
+        // Física de las pelotas
+        for (int i = 0; i < num_players; i++) {
+            if ((players[i].ball_vx != 0 || players[i].ball_vy != 0) && !players[i].ball_in_hole) {
+                players[i].ball_x += players[i].ball_vx / 10;
+                players[i].ball_y += players[i].ball_vy / 10;
+                players[i].ball_vx = (players[i].ball_vx * 95) / 100;
+                players[i].ball_vy = (players[i].ball_vy * 95) / 100;
+                if (players[i].ball_vx < 1 && players[i].ball_vx > -1) players[i].ball_vx = 0;
+                if (players[i].ball_vy < 1 && players[i].ball_vy > -1) players[i].ball_vy = 0;
+            }
+        }
+
+        // Rebote en bordes
+        for (int i = 0; i < num_players; i++) {
+            if (players[i].ball_x < 5) { players[i].ball_x = 5; players[i].ball_vx = -players[i].ball_vx; }
+            if (players[i].ball_x > SCREEN_WIDTH - 5) { players[i].ball_x = SCREEN_WIDTH - 5; players[i].ball_vx = -players[i].ball_vx; }
+            if (players[i].ball_y < UI_TOP_MARGIN + 5) { players[i].ball_y = UI_TOP_MARGIN + 5; players[i].ball_vy = -players[i].ball_vy; }
+            if (players[i].ball_y > SCREEN_HEIGHT - 5) { players[i].ball_y = SCREEN_HEIGHT - 5; players[i].ball_vy = -players[i].ball_vy; }
+        }
+
+        for (int i = 0; i < num_players; i++) {
+            if (players[i].golpes >= 6 && !players[i].ball_in_hole && 
+                players[i].ball_vx == 0 && players[i].ball_vy == 0) {
+                char lose_msg[80];
+                if (num_players == 1)
+                    sprintf(lose_msg, "GAME OVER! Llegaste a 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.");
+                else
+                    sprintf(lose_msg, "GAME OVER! %s llego a 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[i].name);
+                displayFullScreenMessage(lose_msg, COLOR_TEXT_BLUE);
+                while (1) {
+                    char input = 0;
+                    if (try_getchar(&input)) {
+                        if (input == 27) { clearScreen(); return; }
+                        else if (input == ' ' || input == '\n' || input == '\r') {
+                            clearScreen();
+                            game_start(num_players);
+                            return;
+                        }
+                    }
+                    for (volatile int i = 0; i < 100000; i++);
+                }
+            }
+        }
+
+        // Verificar si alguna pelota llegó al hoyo
+        for (int i = 0; i < num_players; i++) {
+            int hx = players[i].ball_x - hole_x, hy = players[i].ball_y - hole_y;
+            if (hx*hx + hy*hy <= 100 && !players[i].ball_in_hole && ganador == -1) {
+                // Mensaje de pelota en hoyo (como el original)
+                drawFullWidthBar(0, 16, COLOR_BG_BLACK);
+                drawTextWithBg(10, 10, "PELOTA EN HOYO!", COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+                sleep(500);
+                players[i].ball_in_hole = 1;
+                players[i].ball_vx = 0;
+                players[i].ball_vy = 0;
+                players[i].ball_x = hole_x;
+                players[i].ball_y = hole_y;
+                ganador = i;
+            }
+        }
+
+        // --- DIBUJO INCREMENTAL ---
+        // 1. Dibujamos el hoyo primero (está en el fondo)
+        drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
+        
+        // 2. Dibujamos los jugadores (están encima del hoyo)
+        for (int i = 0; i < num_players; i++) {
+            drawCircle(players[i].x, players[i].y, PLAYER_RADIUS, players[i].color);
+        }
+        
+        // 3. Dibujamos las pelotas (están encima de los jugadores)
+        for (int i = 0; i < num_players; i++) {
+            drawCircle(players[i].ball_x, players[i].ball_y, 5, players[i].ball_color);
+        }
+        
+        // 4. Dibujamos las flechas (están encima de todo)
+        for (int i = 0; i < num_players; i++) {
+            drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, players[i].arrow_color);
+        }
+        
+        // 5. Actualizamos las posiciones previas
+        for (int i = 0; i < num_players; i++) {
+            players[i].prev_x = players[i].x;
+            players[i].prev_y = players[i].y;
+            players[i].prev_angle = players[i].angle;
+            players[i].prev_ball_x = players[i].ball_x;
+            players[i].prev_ball_y = players[i].ball_y;
+        }
+
+        // Si hay ganador, mostrar mensaje y esperar acción
+        if (ganador != -1) {
+            char victory_msg[80];
+            if (num_players == 1)
+                sprintf(victory_msg, "VICTORIA! Hoyo completado en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[0].golpes);
+            else
+                sprintf(victory_msg, "GANA %s! en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[ganador].name, players[ganador].golpes);
+            displayFullScreenMessage(victory_msg, COLOR_TEXT_BLUE);
+            while (1) {
+                char input = 0;
+                if (try_getchar(&input)) {
+                    if (input == 27) { clearScreen(); return; }
+                    else if (input == ' ' || input == '\n' || input == '\r') {
+                        clearScreen();
+                        game_start(num_players);
+                        return;
+                    }
+                }
+                for (volatile int i = 0; i < 100000; i++);
+            }
+        }
+        sleep(16);
+    }
 }

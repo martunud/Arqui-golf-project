@@ -4,6 +4,5 @@
 #include <stdint.h>
 
 void game_main_screen(void);
-void game_start(void);
-
+void game_start(int num_players);
 #endif
