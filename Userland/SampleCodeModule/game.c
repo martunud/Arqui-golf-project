@@ -2,6 +2,7 @@
 #include "include/game.h"
 #include "include/game_functions.h"
 
+
 // Pantalla principal del juego
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_GREY);
@@ -126,7 +127,6 @@ void game_start(int num_players) {
 
     int ganador = -1;
     while (1) {
-        // Actualiza barra superior si es necesario
         if (num_players == 1) {
             if (players[0].golpes != last_golpes_p1) {
                 sprintf(status_str, "Golpes: %d, Modo: Solitario", players[0].golpes);
@@ -142,7 +142,6 @@ void game_start(int num_players) {
             }
         }
 
-        // Entrada no bloqueante
         char input = 0;
         if (try_getchar(&input)) {
             if (input == 27) { clearScreen(); break; }
@@ -151,7 +150,6 @@ void game_start(int num_players) {
                     char effective_input = (i == 1) ? (input >= 'A' && input <= 'Z' ? input + 32 : input) : input;
                     if ((i == 1 && effective_input == players[i].control_up) || 
                         (i == 0 && effective_input == players[i].control_up)) {
-                        // Mueve el jugador hacia adelante
                         int new_x = players[i].x + (cos_table[players[i].angle] * 10) / 100;
                         int new_y = players[i].y + (sin_table[players[i].angle] * 10) / 100;
                         // Verifica límites de pantalla
@@ -182,14 +180,14 @@ void game_start(int num_players) {
                 int dx = players[i].ball_x - players[i].x;
                 int dy = players[i].ball_y - players[i].y;
                 int dist_squared = dx*dx + dy*dy;
-                // Si el jugador toca la pelota y puede golpear
                 if (dist_squared <= (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5) && players[i].puede_golpear) {
                     players[i].ball_vx = (cos_table[players[i].angle] * POWER_FACTOR) / 10;
                     players[i].ball_vy = (sin_table[players[i].angle] * POWER_FACTOR) / 10;
-                    players[i].golpes++;
+                    if (players[i].golpes < 6) {
+                        players[i].golpes++;
+                    }
                     players[i].puede_golpear = 0;
                     audiobounce();
-                    // Verifica si alcanzó el límite de 6 golpes
                     if (players[i].golpes >= 6 && ganador == -1) {
                         players[i].debe_verificar_derrota = 1;
                     }
@@ -197,7 +195,6 @@ void game_start(int num_players) {
             }
         }
 
-        // Permite volver a golpear solo si el jugador está lejos de su pelota
         for (int i = 0; i < num_players; i++) {
             int dx = players[i].ball_x - players[i].x;
             int dy = players[i].ball_y - players[i].y;
@@ -236,6 +233,19 @@ void game_start(int num_players) {
             }
         }
 
+        for (int i = 0; i < num_players; i++) {
+            if (!players[i].ball_in_hole && players[i].golpes >= 6 && 
+                players[i].ball_vx == 0 && players[i].ball_vy == 0 && 
+                ganador == -1) {
+                if (num_players == 1) {
+                    ganador = -2;
+                } 
+                else {
+                    ganador = (i == 0) ? 1 : 0;
+                }
+            }
+        }
+
         drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
         for (int i = 0; i < num_players; i++) {
             int playerMoved = (players[i].prev_x != players[i].x || players[i].prev_y != players[i].y);
@@ -264,18 +274,18 @@ void game_start(int num_players) {
         if (ganador != -1) {
             char victory_msg[120];
             if (num_players == 1) {
-                if (players[0].ball_in_hole) {
-                    sprintf(victory_msg, "VICTORIA! Hoyo completado en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[0].golpes);
-                } else {
+                if (ganador == -2) { 
                     sprintf(victory_msg, "DERROTA! No lograste meter la pelota en 6 golpes. Presiona Espacio/ENTER para reintentar o ESC para salir.");
+                } else if (players[0].ball_in_hole) {
+                    sprintf(victory_msg, "VICTORIA! Hoyo completado en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[0].golpes);
                 }
             } else {
                 if (players[ganador].ball_in_hole) {
-                    sprintf(victory_msg, "GANA %s! Logro meter la pelota en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
+                    sprintf(victory_msg, "GANA %s! Logró meter la pelota en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
                         players[ganador].name, players[ganador].golpes);
                 } else {
                     int perdedor = (ganador == 0) ? 1 : 0;
-                    sprintf(victory_msg, "GANA %s! %s no logro meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
+                    sprintf(victory_msg, "GANA %s! %s no logró meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
                         players[ganador].name, players[perdedor].name);
                 }
             }
