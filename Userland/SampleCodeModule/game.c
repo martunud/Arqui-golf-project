@@ -510,61 +510,34 @@ void game_start(int num_players) {
                 players[i].puede_golpear = 1;
         }
 
-        // Física de las pelotas y colisiones
+        //FISICA DE LA PELOTA 
         for (int i = 0; i < num_players; i++) {
             if ((players[i].ball_vx != 0 || players[i].ball_vy != 0) && !players[i].ball_in_hole) {
                 players[i].ball_x += players[i].ball_vx / 10;
                 players[i].ball_y += players[i].ball_vy / 10;
-                // Verifica si la pelota entró al hoyo
-                int dx = players[i].ball_x - hole_x;
-                int dy = players[i].ball_y - hole_y;
-                if (dx*dx + dy*dy <= 15*15) {
-                    players[i].ball_x = hole_x;
-                    players[i].ball_y = hole_y;
-                    players[i].ball_in_hole = 1;
-                    players[i].ball_vx = 0;
-                    players[i].ball_vy = 0;
-                    if (ganador == -1) ganador = i;
-                    continue;
-                }
-                // Rebotes con bordes
-                if (players[i].ball_x < 5) { 
-                    players[i].ball_x = 5; 
-                    players[i].ball_vx = -players[i].ball_vx * BOUNCE_FACTOR / 100; 
-                    audiobounce();
-                }
-                if (players[i].ball_x > SCREEN_WIDTH - 5) { 
-                    players[i].ball_x = SCREEN_WIDTH - 5; 
-                    players[i].ball_vx = -players[i].ball_vx * BOUNCE_FACTOR / 100;
-                    audiobounce();
-                }
-                if (players[i].ball_y < UI_TOP_MARGIN + 5) { 
-                    players[i].ball_y = UI_TOP_MARGIN + 5; 
-                    players[i].ball_vy = -players[i].ball_vy * BOUNCE_FACTOR / 100;
-                    audiobounce();
-                }
-                if (players[i].ball_y > SCREEN_HEIGHT - 5) { 
-                    players[i].ball_y = SCREEN_HEIGHT - 5; 
-                    players[i].ball_vy = -players[i].ball_vy * BOUNCE_FACTOR / 100;
-                    audiobounce();
-                }
-                // Fricción
-                players[i].ball_vx = (players[i].ball_vx * FRICTION) / 100;
-                players[i].ball_vy = (players[i].ball_vy * FRICTION) / 100;
-                // Detiene la pelota 
-                if (my_abs(players[i].ball_vx) < MIN_VELOCITY && my_abs(players[i].ball_vy) < MIN_VELOCITY) {
-                    players[i].ball_vx = 0;
-                    players[i].ball_vy = 0;
-                    // Verifica derrota si corresponde
-                    if (players[i].debe_verificar_derrota) {
-                        players[i].debe_verificar_derrota = 0;
-                        if (!players[i].ball_in_hole) {
-                            if (ganador == -1) {
-                                ganador = (i == 0) ? 1 : 0;
-                            }
-                        }
-                    }
-                }
+                players[i].ball_vx = (players[i].ball_vx * 95) / 100;
+                players[i].ball_vy = (players[i].ball_vy * 95) / 100;
+                if (players[i].ball_vx < 1 && players[i].ball_vx > -1) players[i].ball_vx = 0;
+                if (players[i].ball_vy < 1 && players[i].ball_vy > -1) players[i].ball_vy = 0;
+            }
+        }
+        // Rebote en bordes
+        for (int i = 0; i < num_players; i++) {
+            if (players[i].ball_x < 5) { players[i].ball_x = 5; players[i].ball_vx = -players[i].ball_vx; audiobounce(); }
+            if (players[i].ball_x > SCREEN_WIDTH - 5) { players[i].ball_x = SCREEN_WIDTH - 5; players[i].ball_vx = -players[i].ball_vx; audiobounce(); }
+            if (players[i].ball_y < UI_TOP_MARGIN + 5) { players[i].ball_y = UI_TOP_MARGIN + 5; players[i].ball_vy = -players[i].ball_vy; audiobounce(); }
+            if (players[i].ball_y > SCREEN_HEIGHT - 5) { players[i].ball_y = SCREEN_HEIGHT - 5; players[i].ball_vy = -players[i].ball_vy; audiobounce(); }
+        }
+        // Verificar si alguna pelota llegó al hoyo
+        for (int i = 0; i < num_players; i++) {
+            int hx = players[i].ball_x - hole_x, hy = players[i].ball_y - hole_y;
+            if (hx*hx + hy*hy <= 15*15 && !players[i].ball_in_hole && ganador == -1) {
+                players[i].ball_in_hole = 1;
+                players[i].ball_vx = 0;
+                players[i].ball_vy = 0;
+                players[i].ball_x = hole_x;
+                players[i].ball_y = hole_y;
+                ganador = i;
             }
         }
 
