@@ -23,10 +23,3 @@ void audio_stop() {
  	uint8_t tmp = inb(0x61) & 0xFC;
  	outb(0x61, tmp);
  }
-
- // Make a beep
-void audio_beep(int frequency, int duration) {
-    audio_play(frequency);
-    timer_wait(duration);
-    audio_stop();
-}

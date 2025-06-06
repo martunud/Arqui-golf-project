@@ -495,7 +495,7 @@ void game_start(int num_players) {
                         players[i].ball_vy = (sin_table[players[i].angle] * golpe_power) / 10;
                         players[i].puede_golpear = 0;
                         players[i].golpes++;
-                        audiobounce();
+                        beep(500, 100);
                     }
                 }
             }
