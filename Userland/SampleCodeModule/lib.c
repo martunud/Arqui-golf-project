@@ -440,9 +440,3 @@ void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg) {
 void beep(int frequency, int duration) {
     sys_beep(frequency, duration);
 }
-
-void audiobounce() {
-    beep(1500, 30);
-    sleep(20);
-    beep(900, 40);
-}

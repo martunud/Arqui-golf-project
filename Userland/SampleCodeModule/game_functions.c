@@ -264,3 +264,7 @@ void drawTextFixed(int x, int y, const char *text, uint32_t color, uint32_t bg) 
         i++;
     }
 }
+
+void audiobounce() {
+    beep(500, 100);
+}
