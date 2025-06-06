@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "interrupts.h" 
 #include "registers.h"
 
 #define ESC 0x1B
@@ -27,6 +28,18 @@
 #define KEY_ARROW_RIGHT  0x83
 #define SC_DELETE 0x53
 #define KEY_DELETE 0x84
+
+#define SC_UP     0x48
+#define SC_DOWN   0x50
+#define SC_LEFT   0x4B
+#define SC_RIGHT  0x4D
+#define SC_SPACE  0x39
+#define SC_TAB    0x0F
+#define CTRL_R_CODE 0x12
+
+extern uint8_t getScanCode();
+extern void request_snapshot();
+
 
 /* Manejador de interrupciones para el teclado, 
  * se ejecuta cuando el teclado genera una interrupcion

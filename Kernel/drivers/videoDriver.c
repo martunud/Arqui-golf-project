@@ -44,10 +44,10 @@ VBEinfoPtr VBEModeInfo = (VBEinfoPtr) 0x0000000000005C00;
 #define SCREEN_WIDTH  (VBEModeInfo->width)
 #define SCREEN_HEIGHT (VBEModeInfo->height)
 
-// Variables for cursor position and font scaling
+
 uint64_t cursorX = 0;
 uint64_t cursorY = 0;
-uint64_t fontScale = 1; // Default scale factor (1x = original size)
+uint64_t fontScale = 1;
 
 void video_putPixel(uint32_t color, uint64_t x, uint64_t y) {
     uint8_t *framebuffer = (uint8_t *)(uintptr_t) VBEModeInfo->framebuffer;
@@ -58,9 +58,9 @@ void video_putPixel(uint32_t color, uint64_t x, uint64_t y) {
 }
 
 void setFontScale(uint64_t scale) {
-    if (scale < 1) scale = 1; // Prevent invalid scale
+    if (scale < 1) scale = 1; 
     fontScale = scale;
-    // Ensure cursor stays within bounds after scaling
+
     if (cursorX >= VBEModeInfo->width) {
         cursorX = 0;
         cursorY += FONT_HEIGHT * fontScale;
@@ -72,6 +72,7 @@ void setFontScale(uint64_t scale) {
 }
 
 void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
+
     if (isSpecialChar(c)) {
         return;
     }
@@ -79,7 +80,6 @@ void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
     uint8_t charIndex = (uint8_t)c;
     unsigned char* charPattern = font8x16[charIndex];
 
-    // Draw character with scaling
     for (int y = 0; y < FONT_HEIGHT; y++) {
         for (int x = 0; x < FONT_WIDTH; x++) {
             uint32_t color = (charPattern[y] & (1 << (7 - x))) ? foregroundColor : backgroundColor;
@@ -91,7 +91,6 @@ void video_putChar(char c, uint64_t foregroundColor, uint64_t backgroundColor) {
         }
     }
 
-    // Update cursor position
     cursorX += FONT_WIDTH * fontScale;
     if (cursorX >= VBEModeInfo->width) {
         video_newLine();
@@ -160,7 +159,7 @@ void video_backSpace() {
 }
 
 void video_tab() {
-    uint64_t step = FONT_WIDTH * fontScale * 8; // Tab is 8 characters wide
+    uint64_t step = FONT_WIDTH * fontScale * 8; // Tab son 8 caracteres
     cursorX = ((cursorX / step) + 1) * step;
     if (cursorX >= VBEModeInfo->width) {
         video_newLine();
@@ -230,7 +229,7 @@ void video_printError(const char *errorMsg) {
 void video_clearScreenColor(uint32_t color) {
     for (int y = 0; y < SCREEN_HEIGHT; y++) {
         for (int x = 0; x < SCREEN_WIDTH; x++) {
-            video_putPixel(color, x, y); // Corregir orden de parámetros
+            video_putPixel(color, x, y);
         }
     }
     cursorX = 0;

@@ -1,15 +1,11 @@
-#define ZERO_EXCEPTION_ID 0
-
-static void zero_division();
 #include "exceptions.h"
-#include "videoDriver.h"
-#include "lib.h"
 
-static char * regs[] = {"RAX","RBX","RCX","RDX","RSI","RDI","RBP","RSP", "R8","R9","R10","R11","R12","R13","R14","R15", "RIP", "RFLAGS"};
 
 static void video_printRegister(char *regName, uint64_t regValue);
 static void video_printRegisters(uint64_t exceptionRegisters[18]);
 
+
+static char * regs[] = {"RAX","RBX","RCX","RDX","RSI","RDI","RBP","RSP", "R8","R9","R10","R11","R12","R13","R14","R15", "RIP", "RFLAGS"};
 
 void exceptionDispatcher(int exception, uint64_t exceptionRegisters[18]) {
 

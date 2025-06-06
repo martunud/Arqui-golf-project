@@ -75,9 +75,6 @@ SECTION .text
 	iretq
 %endmacro
 
-
-
-
 _hlt:
 	sti
 	hlt
@@ -86,7 +83,6 @@ _hlt:
 _cli:
 	cli
 	ret
-
 
 _sti:
 	sti
@@ -268,7 +264,7 @@ request_snapshot:
 SECTION .bss
 	aux resq 1
 	exception_regs resq 18
-	snapshot_buffer resq 18       ; o la cantidad de registros que guardás
+	snapshot_buffer resq 18
 	do_snapshot resb 1
 
 SECTION .rodata

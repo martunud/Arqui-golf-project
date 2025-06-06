@@ -1,17 +1,4 @@
 #include "keyboardDriver.h"
-#include "interrupts.h" 
-#include <stddef.h>
-
-#define SC_UP     0x48
-#define SC_DOWN   0x50
-#define SC_LEFT   0x4B
-#define SC_RIGHT  0x4D
-#define SC_SPACE  0x39
-#define SC_TAB    0x0F
-#define CTRL_R_CODE 0x12
-
-extern uint8_t getScanCode();
-extern void request_snapshot();
 
 static int buffer_empty();
 static int buffer_full();
@@ -19,6 +6,21 @@ static char buffer_pop();
 static char buffer_push(char c);
 static char scToAscii(uint8_t scancode);
 static void updateFlags(uint8_t scancode);
+
+//Flags teclas especiales
+static volatile uint8_t activeShift = 0;               //Shift presionado
+static volatile uint8_t activeCapsLock = 0;            //CapsLock presionado
+static volatile uint8_t activeCtrl = 0;                //Ctrl presionado
+
+typedef struct CircleBuffer{
+    char buffer[BUFFER_SIZE];
+    int readIndex;              //indice del proximo caracter a leer
+    int writeIndex;             //indice del proximo caracter a escribir  
+    int size;
+} TCircleBuffer;
+
+
+static TCircleBuffer buffer = {.readIndex = 0, .writeIndex = 0, .size = 0};
 
 
 // En primer indice char sin shift, en segundo indice char con shift
@@ -38,36 +40,18 @@ static const char scancode_table[KEY_COUNT][2] = {
 
 };
 
-
-typedef struct CircleBuffer{
-    char buffer[BUFFER_SIZE];
-    int readIndex;              //indice del proximo caracter a leer
-    int writeIndex;             //indice del proximo caracter a escribir  
-    int size;
-} TCircleBuffer;
-
-
-static TCircleBuffer buffer = {.readIndex = 0, .writeIndex = 0, .size = 0};
-
-//Flags teclas especiales
-static volatile uint8_t activeShift = 0;               //Shift presionado
-static volatile uint8_t activeCapsLock = 0;            //CapsLock presionado
-static volatile uint8_t activeCtrl = 0;                //Ctrl presionado
-
 void keyboard_interrupt_handler() {
     uint8_t scancode = getScanCode();           
     updateFlags(scancode);                     
 
     char cAscii = scToAscii(scancode);        
 
-    // Detectar Ctrl+R
     if (activeCtrl && (cAscii == 'r' || cAscii == 'R')) {
         request_snapshot();
     } else if (cAscii != 0) {
         buffer_push(cAscii);
     }
 }
-
 
 static void updateFlags(uint8_t scancode) {
     if (scancode == CTRL_L) {
@@ -113,13 +97,12 @@ static int buffer_full() {
 }
 
 static int buffer_empty() {
-    return buffer.size == 0;  // Usar size en lugar de comparar índices
+    return buffer.size == 0;
 }
 
 char keyboard_read_getchar() {
     return buffer_pop();
 }
-
 
 static char scToAscii(uint8_t scancode) {
     char c = 0;

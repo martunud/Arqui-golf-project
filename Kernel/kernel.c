@@ -83,29 +83,10 @@ void * initializeKernelBinary()
 	return getStackBase();
 }
 
-void test_keyboard() {
-    char c;
-    video_clearScreen();
-    video_putString("Test de teclado - Presione ESC para salir\n", 0xFFFFFF, 0x000000);
-
-    while(1) {
-        c = keyboard_read_getchar();
-        if(c != 0) {
-            if(c == 27) {  // ESC
-                video_putString("\nSaliendo...\n", 0xFFFFFF, 0x000000);
-                break;
-            }
-            char str[2] = {c, 0};
-            video_putString(str, 0xFFFFFF, 0x000000);
-        }
-    }
-}
-
 int main()
 {	
 	load_idt();
 
-	//test_keyboard();
 	ncPrint("[Kernel Main]");
 	ncNewline();
 	ncPrint("  Sample code module at 0x");
@@ -123,22 +104,6 @@ int main()
 	ncPrint((char*)sampleDataModuleAddress);
 	ncNewline();
 
-	// video_putChar('s', 0xFFFFFF, 0x000000);
-	// video_putChar('e', 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putString("Hola mundo", 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putChar(' ', 0xFFFFFF, 0x000000);
-	// video_putString("Prueba de video ", 0xFFFFFF, 0x000000);
-	// video_putString("tab:\t y ahora un enter\n y ahora un backspace\b", 0xFFFFFF, 0x000000);
-
-	// video_putString("\nHola\tcomo\testas\n", 0xFFFFFF, 0x000000);
-	// video_putString("\blinea de abajo", 0xFFFFFF, 0x000000);
-	
 	ncPrint("[Finished]");
 	return 0;
 }
