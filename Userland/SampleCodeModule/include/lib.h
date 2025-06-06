@@ -39,4 +39,6 @@ void video_putChar(char c, uint32_t fg, uint32_t bg);
 void video_clearScreenColor(uint32_t color); // Nueva función para limpiar con color
 void sleep(int milliseconds);
 void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg);
+void beep(int frequency, int duration);
+void audiobounce();
 #endif
