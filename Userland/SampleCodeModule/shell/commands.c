@@ -16,14 +16,14 @@ const TShellCmd shellCmds[] = {
     {"exceptions", exceptionCmd, ": Testear excepciones. Ingrese: exceptions [zero/invalidOpcode] para testear alguna operacion\n"},
     {"jugar", gameCmd, ": Inicia el modo juego\n"},
     {"regs", regsCmd, ": Muestra los ultimos 18 registros de la CPU\n"},
-    {NULL, NULL, NULL}, // Comando vacío para indicar el final de la lista
+    {NULL, NULL, NULL}, 
 };
 
 int regsCmd(int argc, char *argv[]) {
     uint64_t snap[18];
-    get_regs(snap);  // syscall copia los 18 registros al array
+    get_regs(snap); 
 
-    CPURegisters *regs = (CPURegisters *)snap; // Casteás para acceder por nombre
+    CPURegisters *regs = (CPURegisters *)snap; 
 
     printf("RAX: %llx\tRBX: %llx\n", regs->rax, regs->rbx);
     printf("RCX: %llx\tRDX: %llx\n", regs->rcx, regs->rdx);
@@ -137,13 +137,12 @@ int exceptionCmd(int argc, char * argv[]) {
     if (strcmp(argv[1], "zero") == 0) {
         int a = 1;
         int b = 0;
-        int c = a / b;   // Provoca división por cero
-        printf("c: %d\n", c); // Esta línea no se ejecutará si hay excepción
-    
+        int c = a / b;   
+        printf("c: %d\n", c); 
     }
     else if (strcmp(argv[1], "invalidOpcode") == 0) {
         printf("Ejecutando invalidOpcode...\n");
-        _invalidOp();    // Provoca opcode inválido
+        _invalidOp();   
     }
     else {
         printf("Error: tipo de excepcion invalido.\nIngrese exceptions [zero, invalidOpcode] para testear alguna operacion\n");

@@ -37,11 +37,8 @@ sys_write:
 sys_getTime:
     push rbp
     mov rbp, rsp
-    
-    mov rax, 2          ; syscall number for getTime
-    
+    mov rax, 2   
     int 0x80
-    
     mov rsp, rbp
     pop rbp
     ret
@@ -49,10 +46,8 @@ sys_getTime:
 sys_clearScreen:
     push rbp
     mov rbp, rsp
-
-    mov rax, 3          ;syscall number for clearScreen
+    mov rax, 3     
     int 0x80
-
     mov rsp, rbp
     pop rbp 
     ret
@@ -87,8 +82,7 @@ sys_setFontScale:
 sys_video_clearScreenColor:
     push rbp
     mov rbp, rsp
-    mov rax, 7         ; Usar syscall 9 (clearScreenColor existente)
-    ; rdi ya contiene el color
+    mov rax, 7       
     int 0x80
     mov rsp, rbp
     pop rbp
@@ -97,8 +91,7 @@ sys_video_clearScreenColor:
 sys_video_putPixel:
     push rbp
     mov rbp, rsp
-    mov rax, 8         ; Número de syscall para putPixel
-    ; Los parámetros ya están en rdi (x), rsi (y), rdx (color)
+    mov rax, 8        
     int 0x80
     mov rsp, rbp
     pop rbp
@@ -107,8 +100,7 @@ sys_video_putPixel:
 sys_video_putChar:
     push rbp
     mov rbp, rsp
-    mov rax, 9         ; Número de syscall para putChar
-    ; Los parámetros ya están en rdi (char), rsi (fg), rdx (bg)
+    mov rax, 9       
     int 0x80
     mov rsp, rbp
     pop rbp
@@ -118,13 +110,12 @@ sys_video_putCharXY:
     push rbp
     mov rbp, rsp
     mov rax, 10
-    ; rdi = c, rsi = x, rdx = y, rcx = fg, r8 = bg
     int 0x80
     mov rsp, rbp
     pop rbp
     ret
 
-    sys_regs:
+sys_regs:
     push rbp
     mov rbp, rsp
     mov rax, 11

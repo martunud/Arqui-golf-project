@@ -14,7 +14,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <math.h> // Add math.h for sqrt function
+#include <math.h> 
 
 typedef struct {
     uint64_t rax, rbx, rcx, rdx, rbp, rdi, rsi, r8, r9, r10, r11, r12, r13, r14, r15, rip, rsp, rflags;
@@ -40,7 +40,7 @@ void printHex64(uint64_t value);
 
 void video_putPixel(int x, int y, uint32_t color);
 void video_putChar(char c, uint32_t fg, uint32_t bg);
-void video_clearScreenColor(uint32_t color); // Nueva función para limpiar con color
+void video_clearScreenColor(uint32_t color);
 void sleep(int milliseconds);
 void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg);
 void beep(int frequency, int duration);

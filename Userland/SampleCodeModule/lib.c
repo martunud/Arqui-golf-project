@@ -2,7 +2,6 @@
 #include "include/syscall.h"
 #include <stdarg.h>
 
-
 int get_regs(uint64_t *r) {
     return sys_regs(r);
 }
@@ -290,7 +289,7 @@ int printf(const char *fmt, ...) {
                         while (*p=='0' && *(p+1)) p++;
                         printf("%s", p);
                         count += strlen(p);
-                        i += 2;  // saltamos los dos 'l' extras y la 'x'
+                        i += 2;  
                         break;
                     }
                 default:
@@ -427,13 +426,10 @@ void video_clearScreenColor(uint32_t color) {
 }
 
 int try_getchar(char *c) {
-    // syscall.h: sys_read(fd, buffer, count);
-    // Si no hay input devuelve 0; si hay, devuelve 1.
     return sys_read(0, c, 1);
 }
 
 void sleep(int ms) {
-    // syscall.h: sys_sleep(milliseconds);
     sys_sleep(ms);
 }
 
