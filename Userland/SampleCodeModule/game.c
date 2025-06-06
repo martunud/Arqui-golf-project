@@ -469,9 +469,8 @@ void game_start(int num_players) {
                     char up = players[i].control_up, left = players[i].control_left, right = players[i].control_right;
                     if ((i == 1 && (input == up || input == up - 32)) || (i == 0 && input == up)) {
                     int old_x = players[i].x, old_y = players[i].y;
-                    // Aumentar la velocidad de 10 a 20 para movimiento más rápido
-                    players[i].x += (cos_table[players[i].angle] * 20) / 100;
-                    players[i].y += (sin_table[players[i].angle] * 20) / 100;
+                    players[i].x += (cos_table[players[i].angle] * 12) / 100;
+                    players[i].y += (sin_table[players[i].angle] * 12) / 100;
                     if (players[i].x < PLAYER_RADIUS) players[i].x = PLAYER_RADIUS;
                     if (players[i].x > SCREEN_WIDTH - PLAYER_RADIUS) players[i].x = SCREEN_WIDTH - PLAYER_RADIUS;
                     if (players[i].y < PLAYER_RADIUS + UI_TOP_MARGIN) players[i].y = PLAYER_RADIUS + UI_TOP_MARGIN;
