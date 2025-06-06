@@ -463,7 +463,6 @@ void game_start(int num_players) {
         char input = 0;
         if (try_getchar(&input)) {
             if (input == 27) { clearScreen(); break; }
-            if ((unsigned char)input == 0x12) { takeRegistersSnapshot(); }
 
             for (int i = 0; i < num_players; i++) {
                 if (!players[i].ball_in_hole) {

@@ -2,12 +2,9 @@
 #include "include/syscall.h"
 #include <stdarg.h>
 
-extern void save_registers_snapshot(uint64_t *buffer);
 
-void takeRegistersSnapshot(void) {
-    uint64_t regs[REGISTERS_CANT];
-    save_registers_snapshot(regs);
-    sys_takeRegistersSnapshot(regs);
+int get_regs(uint64_t *r) {
+    return sys_regs(r);
 }
 
 void putchar(char c) {
@@ -404,10 +401,6 @@ void getTime(char *buffer) {
 
 void setFontScale(int scale) {
     sys_setFontScale(scale);
-}
-
-int getRegisters(uint64_t *buffer) {
-    return sys_getRegisters(buffer);
 }
 
 void printHex64(uint64_t value) {

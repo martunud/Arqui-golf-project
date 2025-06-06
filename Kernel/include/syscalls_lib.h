@@ -2,7 +2,11 @@
 #define SYSCALLS_LIB_H
 
 #include <stdint.h>
+#include "registers.h"
 
+
+
+uint64_t syscall_get_regs(uint64_t *dest);
 
 /** fd: Un entero que representa el descriptor de archivo desde el cual se leerán los datos.
  * buffer: Un puntero a un búfer en memoria donde se almacenarán los datos leídos
@@ -23,13 +27,6 @@ uint64_t syscall_write(int fd, const char * buffer, int count);
 */
 uint64_t syscall_getTime(uint64_t reg);
 
-/*
- * Obtiene los valores de los registros del sistema
- * buffer: arreglo donde se guardarán los valores de los registros
- * Retorna: cantidad de registros copiados o 0 si hubo error
- * Orden de los registros: RAX, RBX, RCX, RDX, RSI, RDI, RBP, R8-R15, RIP, RSP
- */
-uint64_t syscall_getRegisters(uint64_t * buffer);
 
 /*
  * Limpiar la pantalla
@@ -50,7 +47,6 @@ uint64_t syscall_sleep(int duration);
 
 uint64_t syscall_setFontScale(int scale);
 
-uint64_t syscall_takeRegistersSnapshot();
 
 uint64_t syscall_video_putPixel(uint64_t x, uint64_t y, uint64_t color, uint64_t unused1, uint64_t unused2);
 uint64_t syscall_video_putChar(uint64_t c, uint64_t fg, uint64_t bg, uint64_t unused1, uint64_t unused2);

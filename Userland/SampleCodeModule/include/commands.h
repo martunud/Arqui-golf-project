@@ -23,9 +23,10 @@ int setUserCmd(int argc, char *argv[]);
 int clearCmd(int argc, char *argv[]);
 int timeCmd(int argc, char *argv[]);
 int fontSizeCmd(int argc, char *argv[]);
-int regsCmd(int argc, char *argv[]);
 int fillCommandAndArgs(char *args[], char *input);  // declaración de la función
 int CommandParse(char *commandInput);
 int exceptionCmd(int argc, char *argv[]);
 int gameCmd(int argc, char *argv[]);
+int regsCmd(int argc, char *argv[]);
+int set_some_regs();
 #endif

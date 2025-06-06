@@ -15,6 +15,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef struct {
+    uint64_t rax, rbx, rcx, rdx, rbp, rdi, rsi, r8, r9, r10, r11, r12, r13, r14, r15, rip, rsp, rflags;
+} CPURegisters;
+
+
 void putchar(char c);
 char getchar();
 int scanf(const char *fmt, ...);
@@ -29,9 +34,7 @@ int sprintf(char *str, const char *fmt, ...);
 int try_getchar(char *c);
 void getTime(char *buffer);
 void setFontScale(int scale);
-int getRegisters(uint64_t *buffer);
 void save_registers_snapshot(uint64_t *buffer);
-void takeRegistersSnapshot(void);
 void printHex64(uint64_t value);
 
 void video_putPixel(int x, int y, uint32_t color);
@@ -39,4 +42,6 @@ void video_putChar(char c, uint32_t fg, uint32_t bg);
 void video_clearScreenColor(uint32_t color); // Nueva función para limpiar con color
 void sleep(int milliseconds);
 void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg);
+int get_regs(uint64_t *r);
+
 #endif

@@ -6,10 +6,6 @@
 
 extern void _invalidOp();
 
-static const char * regNames[REGISTERS_CANT] = {
-    "RAX", "RBX", "RCX", "RDX", "RSI", "RDI", "RBP", "R8 ", "R9 ", "R10", "R11", "R12", "R13", "R14", "R15", "RIP", "RSP", "RFLAGS"
-};
-
 const TShellCmd shellCmds[] = {
     {"help", helpCmd, ": Muestra los comandos disponibles\n"},
     {"exit", exitCmd, ": Salir del shell\n"},
@@ -17,11 +13,30 @@ const TShellCmd shellCmds[] = {
     {"clear", clearCmd, ": Limpia la pantalla\n"},
     {"time", timeCmd, ": Muestra la hora actual\n"},
     {"font-size", fontSizeCmd, ": Cambia el tamano de la fuente\n"},
-    {"regs", regsCmd, ": Muestra el estado de los registros (Presione CTRL+R para actualizar)\n"},
     {"exceptions", exceptionCmd, ": Testear excepciones. Ingrese: exceptions [zero/invalidOpcode] para testear alguna operacion\n"},
     {"jugar", gameCmd, ": Inicia el modo juego\n"},
+    {"regs", regsCmd, ": Muestra los ultimos 18 registros de la CPU\n"},
     {NULL, NULL, NULL}, // Comando vacío para indicar el final de la lista
 };
+
+int regsCmd(int argc, char *argv[]) {
+    uint64_t snap[18];
+    get_regs(snap);  // syscall copia los 18 registros al array
+
+    CPURegisters *regs = (CPURegisters *)snap; // Casteás para acceder por nombre
+
+    printf("RAX: %llx\tRBX: %llx\n", regs->rax, regs->rbx);
+    printf("RCX: %llx\tRDX: %llx\n", regs->rcx, regs->rdx);
+    printf("RSI: %llx\tRDI: %llx\n", regs->rsi, regs->rdi);
+    printf("RBP: %llx\tR8 : %llx\n", regs->rbp, regs->r8);
+    printf("R9 : %llx\tR10: %llx\n", regs->r9, regs->r10);
+    printf("R11: %llx\tR12: %llx\n", regs->r11, regs->r12);
+    printf("R13: %llx\tR14: %llx\n", regs->r13, regs->r14);
+    printf("R15: %llx\tRIP: %llx\n", regs->r15, regs->rip);
+    printf("RSP: %llx\tRFLAGS: %llx\n", regs->rsp, regs->rflags);
+    return OK;
+}
+
 
 int helpCmd(int argc, char *argv[]){
     printf("%s", "Comandos disponibles:\n");
@@ -76,33 +91,6 @@ int fontSizeCmd(int argc, char *argv[]){
     printf("Tamaño de fuente cambiado a: %d\n", size);
     return OK;
 }
-
-int regsCmd(int argc, char *argv[]) {
-    uint64_t regs[REGISTERS_CANT];
-    int ok = getRegisters(regs);
-    if (!ok) {
-        printf("[inforeg] No se pudieron leer/actualizar los registros.\n");
-        return ERROR;
-    }
-    for (int i = 0; i < REGISTERS_CANT - 1; i += 2) {
-        printf("%s: ", regNames[i]);
-        printHex64(regs[i]);
-        printf("\t");
-        if (i + 1 < REGISTERS_CANT - 1) {
-            printf("%s: ", regNames[i + 1]);
-            printHex64(regs[i + 1]);
-            printf("\n");
-        } else {
-            putchar('\n');
-        }
-    }
-    // Imprimir RFLAGS al final
-    printf("RFLAGS: ");
-    printHex64(regs[REGISTERS_CANT - 1]);
-    printf("\nPresione CTRL+R para refrescar los registros.\n");
-    return OK;
-}
-
 
 int CommandParse(char *commandInput){
     if(commandInput == NULL)

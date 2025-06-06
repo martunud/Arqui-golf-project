@@ -5,16 +5,16 @@
 
 uint64_t sys_read(int fd, char * buffer, int count);
 uint64_t sys_write(int fd, const char * buffer, int count);
-uint64_t sys_getRegisters(uint64_t *buffer);
 uint64_t sys_getTime(uint8_t reg);
 uint64_t sys_clearScreen();
 uint64_t sys_setFontScale(int scale);
 uint64_t sys_sleep(int duration);
 uint64_t sys_beep(int frequency, int duration);
-uint64_t sys_takeRegistersSnapshot(uint64_t *regs);
 
 uint64_t sys_video_putPixel(int x, int y, uint32_t color);
 uint64_t sys_video_putChar(char c, uint32_t fg, uint32_t bg);
 uint64_t sys_video_clearScreenColor(uint32_t color);
 uint64_t sys_video_putCharXY(char c, int x, int y, uint32_t fg, uint32_t bg);
+uint64_t sys_regs(void *user_buf);
+
 #endif
