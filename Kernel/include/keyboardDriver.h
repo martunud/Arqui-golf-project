@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include "registers.h"
 
 #define ESC 0x1B
 #define BACKSPACE 0x0E
@@ -37,11 +38,5 @@ void keyboard_interrupt_handler();
 */
 char keyboard_read_getchar();
 
-/*
- * Llena un arreglo buffer con los valores actuales de los registros del procesador
-*/
-void refreshRegistersSnapshot(void);
-uint64_t getRegisters(uint64_t * r);
-void setSnapshotTaken(void);
 
 #endif 

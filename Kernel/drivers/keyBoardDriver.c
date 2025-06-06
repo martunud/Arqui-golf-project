@@ -11,9 +11,7 @@
 #define CTRL_R_CODE 0x12
 
 extern uint8_t getScanCode();
-extern void _refreshRegisters(void);
-extern uint64_t* _getRegisters();
-extern void refreshRegistersSnapshot(void);
+extern void request_snapshot();
 
 static int buffer_empty();
 static int buffer_full();
@@ -56,10 +54,6 @@ static volatile uint8_t activeShift = 0;               //Shift presionado
 static volatile uint8_t activeCapsLock = 0;            //CapsLock presionado
 static volatile uint8_t activeCtrl = 0;                //Ctrl presionado
 
-static volatile uint64_t registers_snapshot[REGISTERS_CANT];   // Snapshot de registros 
-static volatile uint8_t snapshotTaken = 0;           // Flag para saber si se tomó el snapshot
-
-
 void keyboard_interrupt_handler() {
     uint8_t scancode = getScanCode();           
     updateFlags(scancode);                     
@@ -68,15 +62,12 @@ void keyboard_interrupt_handler() {
 
     // Detectar Ctrl+R
     if (activeCtrl && (cAscii == 'r' || cAscii == 'R')) {
-        buffer_push(CTRL_R_CODE); // Poner valor especial en el buffer
+        request_snapshot();
     } else if (cAscii != 0) {
         buffer_push(cAscii);
     }
 }
 
-void setSnapshotTaken(void) {
-    snapshotTaken = 1;
-}
 
 static void updateFlags(uint8_t scancode) {
     if (scancode == CTRL_L) {
@@ -161,14 +152,4 @@ static char scToAscii(uint8_t scancode) {
         }
     }
     return c;
-}
-
-uint64_t getRegisters(uint64_t * r) {
-    if(!snapshotTaken) {
-        return 0;
-    }
-    for(int i = 0; i < REGISTERS_CANT; i++) {
-        r[i] = registers_snapshot[i];
-    }
-    return 1;
 }

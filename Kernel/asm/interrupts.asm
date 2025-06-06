@@ -13,10 +13,10 @@ GLOBAL _irq03Handler
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
 GLOBAL _irq80Handler
-
 GLOBAL _exception0Handler
 GLOBAL _exception6Handler
-
+GLOBAL request_snapshot
+GLOBAL _getSnapshot
 
 EXTERN irqDispatcher
 EXTERN exceptionDispatcher
@@ -125,7 +125,44 @@ _irq00Handler:
 
 ;Keyboard
 _irq01Handler:
-	irqHandlerMaster 1
+    pushState
+
+    cmp byte [do_snapshot], 1
+    jne .no_snapshot
+
+
+    mov rsi, rsp             
+    mov rdi, snapshot_buffer  
+    mov rcx, 15               
+
+.rep_loop:
+    mov rax, [rsi + rcx*8 - 8] 
+    mov [rdi + rcx*8 - 8], rax 
+    loop .rep_loop
+
+    mov rax, [rsp + 15*8]  
+    mov [snapshot_buffer + 15*8], rax
+    mov rax, [rsp + 17*8]       
+    mov [snapshot_buffer + 16*8], rax
+
+    pushfq
+    pop rax
+    mov [snapshot_buffer + 17*8], rax
+
+    mov byte [do_snapshot], 0
+
+.no_snapshot:
+    mov rdi, 1 
+    call irqDispatcher
+
+    mov al, 20h
+    out 20h, al
+    popState
+    iretq
+
+_getSnapshot:
+    mov rax, snapshot_buffer
+    ret
 
 ;Cascade pic never called
 _irq02Handler:
@@ -236,9 +273,15 @@ haltcpu:
 	hlt
 	ret
 
+request_snapshot:
+    mov byte [do_snapshot], 1
+    ret
+
 SECTION .bss
 	aux resq 1
 	exception_regs resq 18
+	snapshot_buffer resq 18       ; o la cantidad de registros que guardás
+	do_snapshot resb 1
 
 SECTION .rodata
 	userland equ 0x400000

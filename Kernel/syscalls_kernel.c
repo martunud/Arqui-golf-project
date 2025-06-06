@@ -10,8 +10,14 @@
 #define STDIN 0
 #define STDOUT 1
 
-uint64_t registers_snapshot[REGISTERS_CANT];
-int snapshotTaken = 0;
+extern uint64_t * _getSnapshot();
+
+uint64_t syscall_get_regs(uint64_t *dest) {
+    const uint64_t *src = _getSnapshot();
+    for (int i = 0; i < REGISTERS_CANT; i++)
+        dest[i] = src[i];
+    return 1;
+}
 
 uint64_t syscall_read(int fd, char *buffer, int count) {
     if (fd != STDIN || buffer == NULL || count <= 0){
@@ -50,17 +56,6 @@ uint64_t syscall_getTime(uint64_t reg) {
     return (uint64_t)t;
 }
 
-
-uint64_t syscall_getRegisters(uint64_t *buffer) {
-    if (!snapshotTaken || buffer == 0) {
-        return 0;
-    }
-    for (int i = 0; i < REGISTERS_CANT; i++) {
-        buffer[i] = registers_snapshot[i];
-    }
-    return REGISTERS_CANT;
-}
-
 uint64_t syscall_clearScreen() {
     video_clearScreen();
     return 1;
@@ -94,14 +89,6 @@ uint64_t syscall_setFontScale(int scale) {
     
     setFontScale(scale);
     return 1; // Éxito
-}
-
-uint64_t syscall_takeRegistersSnapshot(uint64_t *regs) {
-    if (regs == NULL) return 0;
-    for (int i = 0; i < REGISTERS_CANT; i++)
-        registers_snapshot[i] = regs[i];
-    snapshotTaken = 1;
-    return 1;
 }
 
 uint64_t syscall_video_putPixel(uint64_t x, uint64_t y, uint64_t color, uint64_t unused1, uint64_t unused2) {

@@ -1,13 +1,9 @@
 GLOBAL cpuVendor
 GLOBAL getScanCode
-GLOBAL _refreshRegisters
-GLOBAL _getRegisters
+
 GLOBAL _readTime
 GLOBAL inb
 GLOBAL outb
-global refreshRegistersSnapshot
-
-
 
 section .text
 	
@@ -41,31 +37,6 @@ getScanCode:
     in al, 0x60      ; Lee un byte del puerto del teclado (0x60) y lo guarda en AL (parte baja de RAX)
     ret              ; Devuelve el scancode en RAX 
 
-_refreshRegisters:
-    mov [_registerdata], rax
-    mov [_registerdata + 1*8], rbx
-    mov [_registerdata + 2*8], rcx
-    mov [_registerdata + 3*8], rdx
-    mov [_registerdata + 4*8], rsi
-    mov [_registerdata + 5*8], rdi
-    mov [_registerdata + 6*8], rbp
-    mov [_registerdata + 7*8], r8
-    mov [_registerdata + 8*8], r9
-    mov [_registerdata + 9*8], r10
-    mov [_registerdata + 10*8], r11
-    mov [_registerdata + 11*8], r12
-    mov [_registerdata + 12*8], r13
-    mov [_registerdata + 13*8], r14
-    mov [_registerdata + 14*8], r15
-    mov rax, [rsp]
-    mov [_registerdata + 15*8], rax ; instruction pointer
-    mov rax, rsp
-    mov [_registerdata + 16*8], rax
-    ret
-
-_getRegisters:
-    mov rax, _registerdata
-    ret
 
 _readTime:
     push rbp
@@ -104,20 +75,4 @@ outb:
 
     mov rsp, rbp
     pop rbp
-    ret
-
-
-section .bss
-_registerdata: resq 17  ; Reserva espacio para 17 registros
-
-section .data
-    registers_snapshot: times 18 dq 0
-
-section .text
-refreshRegistersSnapshot:
-    ; Ejemplo de cómo se copia RAX, RBX, RCX, ...
-    mov [rel registers_snapshot + 0*8], rax
-    mov [rel registers_snapshot + 1*8], rbx
-    mov [rel registers_snapshot + 2*8], rcx
-    ; (continúa con el resto: rdx, rsi, rdi, rbp, rsp, r8…r15, rip, rflags)
     ret
