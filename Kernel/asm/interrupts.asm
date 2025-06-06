@@ -77,16 +77,6 @@ SECTION .text
 
 
 
-%macro exceptionHandler 1
-	pushState
-
-	mov rdi, %1 ; pasaje de parametro
-	call exceptionDispatcher
-
-	popState
-	iretq
-%endmacro
-
 
 _hlt:
 	sti
