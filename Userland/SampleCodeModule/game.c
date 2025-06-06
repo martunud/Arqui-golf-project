@@ -575,69 +575,34 @@ void game_start(int num_players) {
                 players[i].puede_golpear = 1;
         }
 
-        // Física de las pelotas y colisiones
+        // --- FISICA DE LA PELOTA (idéntica a pruebas.txt) ---
         for (int i = 0; i < num_players; i++) {
             if ((players[i].ball_vx != 0 || players[i].ball_vy != 0) && !players[i].ball_in_hole) {
-                // Actualizar posición como en pruebas.txt
-                players[i].ball_x += players[i].ball_vx / 10;  // División por 10 para suavizar el movimiento
+                players[i].ball_x += players[i].ball_vx / 10;
                 players[i].ball_y += players[i].ball_vy / 10;
-                
-                // Verificar si la pelota entró al hoyo
-                int dx = players[i].ball_x - hole_x;
-                int dy = players[i].ball_y - hole_y;
-                if (dx*dx + dy*dy <= 15*15) { // 15 es el radio del hoyo
-                    players[i].ball_x = hole_x; // Centrar la pelota en el hoyo
-                    players[i].ball_y = hole_y;
-                    players[i].ball_in_hole = 1;
-                    players[i].ball_vx = 0;
-                    players[i].ball_vy = 0;
-                    if (ganador == -1) ganador = i; // El primer jugador en meter la pelota gana
-                    continue;
-                }
-                
-                // Rebotes con bordes (como en pruebas.txt)
-                if (players[i].ball_x < 5) { 
-                    players[i].ball_x = 5; 
-                    players[i].ball_vx = -players[i].ball_vx * BOUNCE_FACTOR / 100; 
-                    audiobounce();
-                }
-                if (players[i].ball_x > SCREEN_WIDTH - 5) { 
-                    players[i].ball_x = SCREEN_WIDTH - 5; 
-                    players[i].ball_vx = -players[i].ball_vx * BOUNCE_FACTOR / 100;
-                    audiobounce();
-                }
-                if (players[i].ball_y < UI_TOP_MARGIN + 5) { 
-                    players[i].ball_y = UI_TOP_MARGIN + 5; 
-                    players[i].ball_vy = -players[i].ball_vy * BOUNCE_FACTOR / 100;
-                    audiobounce();
-                }
-                if (players[i].ball_y > SCREEN_HEIGHT - 5) { 
-                    players[i].ball_y = SCREEN_HEIGHT - 5; 
-                    players[i].ball_vy = -players[i].ball_vy * BOUNCE_FACTOR / 100;
-                    audiobounce();
-                }
-                
-                // Aplicar fricción (idéntico a pruebas.txt)
-                players[i].ball_vx = (players[i].ball_vx * FRICTION) / 100;
-                players[i].ball_vy = (players[i].ball_vy * FRICTION) / 100;
-                
-                // Detener la pelota cuando la velocidad es muy baja (como en pruebas.txt)
-                if (my_abs(players[i].ball_vx) < MIN_VELOCITY && my_abs(players[i].ball_vy) < MIN_VELOCITY) {
-                    players[i].ball_vx = 0;
-                    players[i].ball_vy = 0;
-                    
-                    // Verificar si la pelota se detuvo y el jugador debe ser verificado para derrota
-                    if (players[i].debe_verificar_derrota) {
-                        players[i].debe_verificar_derrota = 0; // Reiniciamos el flag
-                        // Si no entró en el hoyo después de 6 golpes, el jugador pierde
-                        if (!players[i].ball_in_hole) {
-                            // Marcar como perdedor (cualquiera que gane después tiene prioridad)
-                            if (ganador == -1) {
-                                ganador = (i == 0) ? 1 : 0; // El otro jugador gana
-                            }
-                        }
-                    }
-                }
+                players[i].ball_vx = (players[i].ball_vx * 95) / 100;
+                players[i].ball_vy = (players[i].ball_vy * 95) / 100;
+                if (players[i].ball_vx < 1 && players[i].ball_vx > -1) players[i].ball_vx = 0;
+                if (players[i].ball_vy < 1 && players[i].ball_vy > -1) players[i].ball_vy = 0;
+            }
+        }
+        // Rebote en bordes (idéntico a pruebas.txt)
+        for (int i = 0; i < num_players; i++) {
+            if (players[i].ball_x < 5) { players[i].ball_x = 5; players[i].ball_vx = -players[i].ball_vx; audiobounce(); }
+            if (players[i].ball_x > SCREEN_WIDTH - 5) { players[i].ball_x = SCREEN_WIDTH - 5; players[i].ball_vx = -players[i].ball_vx; audiobounce(); }
+            if (players[i].ball_y < UI_TOP_MARGIN + 5) { players[i].ball_y = UI_TOP_MARGIN + 5; players[i].ball_vy = -players[i].ball_vy; audiobounce(); }
+            if (players[i].ball_y > SCREEN_HEIGHT - 5) { players[i].ball_y = SCREEN_HEIGHT - 5; players[i].ball_vy = -players[i].ball_vy; audiobounce(); }
+        }
+        // Verificar si alguna pelota llegó al hoyo (idéntico a pruebas.txt)
+        for (int i = 0; i < num_players; i++) {
+            int hx = players[i].ball_x - hole_x, hy = players[i].ball_y - hole_y;
+            if (hx*hx + hy*hy <= 15*15 && !players[i].ball_in_hole && ganador == -1) {
+                players[i].ball_in_hole = 1;
+                players[i].ball_vx = 0;
+                players[i].ball_vy = 0;
+                players[i].ball_x = hole_x;
+                players[i].ball_y = hole_y;
+                ganador = i;
             }
         }
 
