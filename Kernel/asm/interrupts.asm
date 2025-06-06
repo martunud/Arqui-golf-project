@@ -77,16 +77,6 @@ SECTION .text
 
 
 
-%macro exceptionHandler 1
-	pushState
-
-	mov rdi, %1 ; pasaje de parametro
-	call exceptionDispatcher
-
-	popState
-	iretq
-%endmacro
-
 
 _hlt:
 	sti
@@ -141,13 +131,11 @@ _irq01Handler:
     loop .rep_loop
 
     mov rax, [rsp + 15*8]  
-    mov [snapshot_buffer + 15*8], rax
-    mov rax, [rsp + 17*8]       
-    mov [snapshot_buffer + 16*8], rax
-
-    pushfq
-    pop rax
-    mov [snapshot_buffer + 17*8], rax
+    mov [snapshot_buffer + 15*8], rax   ; RIP
+    mov rax, [rsp + 16*8]  
+    mov [snapshot_buffer + 16*8], rax   ; RSP
+    mov rax, [rsp + 17*8]  
+    mov [snapshot_buffer + 17*8], rax   ; RFLAGS
 
     mov byte [do_snapshot], 0
 
