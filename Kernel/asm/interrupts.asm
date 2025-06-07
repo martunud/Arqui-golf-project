@@ -128,7 +128,7 @@ _irq01Handler:
 
     mov rax, [rsp + 15*8]  
     mov [snapshot_buffer + 15*8], rax   ; RIP
-    mov rax, [rsp + 16*8]  
+    mov rax, [rsp + 18*8]  
     mov [snapshot_buffer + 16*8], rax   ; RSP
     mov rax, [rsp + 17*8]  
     mov [snapshot_buffer + 17*8], rax   ; RFLAGS
