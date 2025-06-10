@@ -73,7 +73,6 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
                 int py = prev_ball_y + y;
                 if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
                     int painted = 0;
-                    // Repinta jugador si corresponde
                     for (int j = 0; j < num_players; j++) {
                         if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
                             video_putPixel(px, py, players[j].color);
@@ -81,7 +80,6 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
                             break;
                         }
                     }
-                    // Repinta hoyo si corresponde
                     if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
                         video_putPixel(px, py, COLOR_BLACK);
                         painted = 1;
@@ -115,7 +113,6 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
                             }
                         }
                     }
-                    // Repinta pelota si corresponde
                     if (!painted) {
                         for (int j = 0; j < num_players; j++) {
                             if ((px - players[j].ball_x)*(px - players[j].ball_x) + (py - players[j].ball_y)*(py - players[j].ball_y) <= 5*5) {
@@ -125,12 +122,10 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
                             }
                         }
                     }
-                    // Repinta hoyo si corresponde
                     if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
                         video_putPixel(px, py, COLOR_BLACK);
                         painted = 1;
                     }
-                    // Si no hay nada, pinta fondo
                     if (!painted) {
                         video_putPixel(px, py, COLOR_BG_GREEN);
                     }
@@ -225,14 +220,19 @@ void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, i
             if (!isInsideHole(px, py, hole_x, hole_y)) {
                 int isInsideBall = 0;
                 for (int j = 0; j < num_players; j++) {
-                    int dx = px - players[j].ball_x;
-                    int dy = py - players[j].ball_y;
-                    if (dx*dx + dy*dy <= 5*5) {
+                    if (circles_overlap(px, py, 1, players[j].ball_x, players[j].ball_y, 5)) {
                         isInsideBall = 1;
                         break;
                     }
                 }
-                if (!isInsideBall) {
+                int isInsidePlayer = 0;
+                for (int j = 0; j < num_players; j++) {
+                    if (circles_overlap(px, py, 1, players[j].x, players[j].y, PLAYER_RADIUS)) {
+                        isInsidePlayer = 1;
+                        break;
+                    }
+                }
+                if (!isInsideBall && !isInsidePlayer) {
                     video_putPixel(px, py, arrow_color);
                 }
             }
@@ -263,15 +263,28 @@ void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, 
                     video_putPixel(px, py, COLOR_BLACK);
                 } else {
                     int painted = 0;
+                    
+        
                     for (int j = 0; j < num_players; j++) {
-                        int dx = px - players[j].ball_x;
-                        int dy = py - players[j].ball_y;
-                        if (dx*dx + dy*dy <= 5*5) {
-                            video_putPixel(px, py, players[j].ball_color);
+                        if (circles_overlap(px, py, 1, players[j].x, players[j].y, PLAYER_RADIUS)) {
+                            video_putPixel(px, py, players[j].color);
                             painted = 1;
                             break;
                         }
                     }
+                    
+                    if (!painted) {
+                        for (int j = 0; j < num_players; j++) {
+                            int dx = px - players[j].ball_x;
+                            int dy = py - players[j].ball_y;
+                            if (dx*dx + dy*dy <= 5*5) {
+                                video_putPixel(px, py, players[j].ball_color);
+                                painted = 1;
+                                break;
+                            }
+                        }
+                    }
+                    
                     if (!painted) {
                         video_putPixel(px, py, COLOR_BG_GREEN);
                     }
