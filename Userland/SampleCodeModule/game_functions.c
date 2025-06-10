@@ -22,7 +22,7 @@ void drawCircle(int cx, int cy, int radius, uint32_t color) {
 // Dibuja texto en pantalla
 void drawText(int x, int y, const char *text, uint32_t color) {
     for (int i = 0; text[i] != '\0'; i++) {
-        video_putCharXY(x + i * 8, y, text[i], color, COLOR_BG_GREY);
+        video_putCharXY(x + i * 8, y, text[i], color, COLOR_BG_HOME);
     }
 }
 
@@ -57,7 +57,7 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
                     }
                     // Repinta hoyo si corresponde
                     if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
-                        video_putPixel(px, py, COLOR_HOLE);
+                        video_putPixel(px, py, COLOR_BLACK);
                         painted = 1;
                     }
                     // Si no hay nada, pinta fondo
@@ -101,7 +101,7 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
                     }
                     // Repinta hoyo si corresponde
                     if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
-                        video_putPixel(px, py, COLOR_HOLE);
+                        video_putPixel(px, py, COLOR_BLACK);
                         painted = 1;
                     }
                     // Si no hay nada, pinta fondo
@@ -154,7 +154,7 @@ void drawFullWidthBar(int y, int height, uint32_t color) {
 void displayFullScreenMessage(const char *message, uint32_t textColor) {
     for (int y = 0; y < SCREEN_HEIGHT; y++) {
         for (int x = 0; x < SCREEN_WIDTH; x++) {
-            video_putPixel(x, y, COLOR_BG_BLACK);
+            video_putPixel(x, y, COLOR_BLACK);
         }
     }
     for (int x = 0; x < SCREEN_WIDTH; x++) {
@@ -170,7 +170,7 @@ void displayFullScreenMessage(const char *message, uint32_t textColor) {
     int messageLen = 0;
     const char* temp = message;
     while (*temp) { messageLen++; temp++; }
-    drawTextWithBg(centerX - (messageLen * 4), centerY - 50, message, textColor, COLOR_BG_BLACK);
+    drawTextWithBg(centerX - (messageLen * 4), centerY - 50, message, textColor, COLOR_BLACK);
     for (int y = centerY - 30; y < centerY - 25; y++) {
         for (int x = centerX - (messageLen * 5); x < centerX + (messageLen * 5); x++) {
             video_putPixel(x, y, textColor);
@@ -234,7 +234,7 @@ void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, 
             int py = arrow_points[i][1];
             if (IN_SCREEN(px, py)) {
                 if (isInsideHole(px, py, hole_x, hole_y)) {
-                    video_putPixel(px, py, COLOR_HOLE);
+                    video_putPixel(px, py, COLOR_BLACK);
                 } else {
                     int painted = 0;
                     for (int j = 0; j < num_players; j++) {

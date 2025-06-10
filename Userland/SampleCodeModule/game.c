@@ -5,7 +5,7 @@
 
 // Pantalla principal del juego
 void game_main_screen() {
-    video_clearScreenColor(COLOR_BG_GREY);
+    video_clearScreenColor(COLOR_BG_HOME);
     const char *lines[] = {
         "Bienvenido a Pongis-Golf",
         "Presione 1 para jugar",
@@ -23,7 +23,7 @@ void game_main_screen() {
         int text_width = text_len * font_width;
         int x = (SCREEN_WIDTH - text_width) / 2;
         int y = startY + i * line_height;
-        drawText(x, y, lines[i], COLOR_TEXT_BLUE);
+        drawText(x, y, lines[i], COLOR_TEXT_HOME);
     }
     while (1) {
         char input = getchar();
@@ -52,18 +52,18 @@ void game_start(int num_players) {
     Player players[2] = {0};
 
     // Configuración de jugadores
-    players[0].color = COLOR_PLAYER;
-    players[0].arrow_color = COLOR_TEXT_BLUE;
-    players[0].ball_color = COLOR_BALL;
+    players[0].color = COLOR_PLAYER1;
+    players[0].arrow_color = COLOR_TEXT_HOME;
+    players[0].ball_color = COLOR_BALL1;
     players[0].control_up = (char)0x80;
     players[0].control_left = (char)0x82;
     players[0].control_right = (char)0x83;
     players[0].name = "Blanco";
 
     if (num_players == 2) {
-        players[1].color = 0x0000FF;
-        players[1].arrow_color = COLOR_TEXT_BLUE;
-        players[1].ball_color = 0xFFA500;
+        players[1].color = COLOR_PLAYER2;
+        players[1].arrow_color = COLOR_TEXT_HOME;
+        players[1].ball_color = COLOR_BALL2;
         players[1].control_up = 'w';
         players[1].control_left = 'a';
         players[1].control_right = 'd';
@@ -101,26 +101,26 @@ void game_start(int num_players) {
     }
 
     // Dibujo inicial
-    drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
+    drawCircle(hole_x, hole_y, 15, COLOR_BLACK);
     for (int i = 0; i < num_players; i++) {
         drawCircle(players[i].x, players[i].y, PLAYER_RADIUS, players[i].color);
         drawCircle(players[i].ball_x, players[i].ball_y, 5, players[i].ball_color);
         drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, players[i].arrow_color, players, num_players);
     }
 
-    drawFullWidthBar(0, 16, COLOR_BG_BLACK);
-    drawFullWidthBar(16, 16, COLOR_BG_BLACK);
+    drawFullWidthBar(0, 16, COLOR_BLACK);
+    drawFullWidthBar(16, 16, COLOR_BLACK);
 
     int last_golpes_p1 = -1, last_golpes_p2 = -1;
     char status_str[80];
 
     if (num_players == 1) {
         sprintf(status_str, "Golpes: %d, Modo: Solitario", players[0].golpes);
-        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
         last_golpes_p1 = players[0].golpes;
     } else {
         sprintf(status_str, "P1: %d | P2: %d   ESC: salir", players[0].golpes, players[1].golpes);
-        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
         last_golpes_p1 = players[0].golpes;
         last_golpes_p2 = players[1].golpes;
     }
@@ -130,13 +130,13 @@ void game_start(int num_players) {
         if (num_players == 1) {
             if (players[0].golpes != last_golpes_p1) {
                 sprintf(status_str, "Golpes: %d, Modo: Solitario", players[0].golpes);
-                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
                 last_golpes_p1 = players[0].golpes;
             }
         } else {
             if (players[0].golpes != last_golpes_p1 || players[1].golpes != last_golpes_p2) {
                 sprintf(status_str, "P1: %d | P2: %d   ESC: salir", players[0].golpes, players[1].golpes);
-                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BG_BLACK);
+                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
                 last_golpes_p1 = players[0].golpes;
                 last_golpes_p2 = players[1].golpes;
             }
@@ -176,20 +176,22 @@ void game_start(int num_players) {
 
         // Detecta colisiones entre jugadores y pelotas (golpe)
         for (int i = 0; i < num_players; i++) {
-            if (!players[i].ball_in_hole) {
-                int dx = players[i].ball_x - players[i].x;
-                int dy = players[i].ball_y - players[i].y;
-                int dist_squared = dx*dx + dy*dy;
-                if (dist_squared <= (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5) && players[i].puede_golpear) {
-                    players[i].ball_vx = (cos_table[players[i].angle] * POWER_FACTOR) / 10;
-                    players[i].ball_vy = (sin_table[players[i].angle] * POWER_FACTOR) / 10;
-                    if (players[i].golpes < 6) {
-                        players[i].golpes++;
-                    }
-                    players[i].puede_golpear = 0;
-                    audiobounce();
-                    if (players[i].golpes >= 6 && ganador == -1) {
-                        players[i].debe_verificar_derrota = 1;
+            for (int j = 0; j < num_players; j++) {
+                if (!players[j].ball_in_hole) {
+                    int dx = players[j].ball_x - players[i].x;
+                    int dy = players[j].ball_y - players[i].y;
+                    int dist_squared = dx*dx + dy*dy;
+                    if (dist_squared <= (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5) && players[i].puede_golpear) {
+                        players[j].ball_vx = (cos_table[players[i].angle] * POWER_FACTOR) / 10;
+                        players[j].ball_vy = (sin_table[players[i].angle] * POWER_FACTOR) / 10;
+                        if (i == j && players[i].golpes < 6) {
+                            players[i].golpes++;
+                        }
+                        players[i].puede_golpear = 0;
+                        audiobounce();
+                        if (i == j && players[i].golpes >= 6 && ganador == -1) {
+                            players[i].debe_verificar_derrota = 1;
+                        }
                     }
                 }
             }
@@ -246,7 +248,7 @@ void game_start(int num_players) {
             }
         }
 
-        drawCircle(hole_x, hole_y, 15, COLOR_HOLE);
+        drawCircle(hole_x, hole_y, 15, COLOR_BLACK);
         for (int i = 0; i < num_players; i++) {
             int playerMoved = (players[i].prev_x != players[i].x || players[i].prev_y != players[i].y);
             int ballMoved = (players[i].prev_ball_x != players[i].ball_x || players[i].prev_ball_y != players[i].ball_y);
@@ -289,7 +291,7 @@ void game_start(int num_players) {
                         players[ganador].name, players[perdedor].name);
                 }
             }
-            displayFullScreenMessage(victory_msg, COLOR_TEXT_BLUE);
+            displayFullScreenMessage(victory_msg, COLOR_TEXT_HOME);
             while (1) {
                 char input = 0;
                 if (try_getchar(&input)) {
