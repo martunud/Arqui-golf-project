@@ -46,5 +46,7 @@ void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg);
 void beep(int frequency, int duration);
 void audiobounce();
 int get_regs(uint64_t *r);
+int is_key_pressed_syscall(unsigned char scancode);
+void clear_key_buffer();
 
 #endif

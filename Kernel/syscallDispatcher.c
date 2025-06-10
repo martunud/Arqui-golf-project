@@ -15,6 +15,7 @@ static SyscallHandler syscallHandlers[] = {
     (SyscallHandler)syscall_video_putChar, // syscall 9
     (SyscallHandler)syscall_video_putCharXY, // syscall 10
     (SyscallHandler)syscall_get_regs, // syscall 11
+    (SyscallHandler)syscall_is_key_pressed, // syscall 12
 };
 
 #define SYSCALLS_COUNT (sizeof(syscallHandlers) / sizeof(syscallHandlers[0]))

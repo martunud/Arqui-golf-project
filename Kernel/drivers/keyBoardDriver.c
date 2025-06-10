@@ -1,4 +1,5 @@
 #include "keyboardDriver.h"
+#include "keystate.h"
 
 static int buffer_empty();
 static int buffer_full();
@@ -11,6 +12,9 @@ static void updateFlags(uint8_t scancode);
 static volatile uint8_t activeShift = 0;               //Shift presionado
 static volatile uint8_t activeCapsLock = 0;            //CapsLock presionado
 static volatile uint8_t activeCtrl = 0;                //Ctrl presionado
+
+// Arreglo para mantener el estado de las teclas
+uint8_t key_states[256] = {0};
 
 typedef struct CircleBuffer{
     char buffer[BUFFER_SIZE];
@@ -37,12 +41,20 @@ static const char scancode_table[KEY_COUNT][2] = {
     {'x', 'X'}, {'c', 'C'}, {'v', 'V'}, {'b', 'B'}, {'n', 'N'},
     {'m', 'M'}, {',', '<'}, {'.', '>'}, {'/', '?'}, {0, 0}, {0, 0},
     {0, 0}, {' ', ' '},
-
 };
 
 void keyboard_interrupt_handler() {
     uint8_t scancode = getScanCode();           
     updateFlags(scancode);                     
+
+    // Actualizar el estado de las teclas
+    if (scancode & RELEASE_OFFSET) {
+        // Tecla liberada (bit más significativo en 1)
+        key_states[scancode & ~RELEASE_OFFSET] = 0;
+    } else {
+        // Tecla presionada
+        key_states[scancode] = 1;
+    }
 
     char cAscii = scToAscii(scancode);        
 
@@ -135,4 +147,12 @@ static char scToAscii(uint8_t scancode) {
         }
     }
     return c;
+}
+
+// Implementación de la función is_key_pressed
+uint8_t is_key_pressed(uint8_t scancode) {
+    if (scancode < 256) {
+        return key_states[scancode];
+    }
+    return 0;
 }

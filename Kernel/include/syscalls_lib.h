@@ -52,4 +52,12 @@ uint64_t syscall_video_putPixel(uint64_t x, uint64_t y, uint64_t color, uint64_t
 uint64_t syscall_video_putChar(uint64_t c, uint64_t fg, uint64_t bg, uint64_t unused1, uint64_t unused2);
 uint64_t syscall_video_clearScreenColor(uint64_t color, uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4);
 uint64_t syscall_video_putCharXY(uint64_t c, uint64_t x, uint64_t y, uint64_t fg, uint64_t bg);
+
+/*
+ * Verifica si una tecla específica está presionada
+ * scancode: el código de escaneo de la tecla a verificar
+ * Retorna: 1 si la tecla está presionada, 0 si no
+ */
+uint64_t syscall_is_key_pressed(uint64_t scancode);
+
 #endif

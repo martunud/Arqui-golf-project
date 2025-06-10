@@ -71,18 +71,15 @@ void game_main_screen() {
         drawText(x, y, lines[i], COLOR_TEXT_HOME);
     }
     while (1) {
-        char input = getchar();
-        if (input != 0) {
-            if (input == '1') {
-                game_start(1);
-                break;
-            } else if (input == '2') {
-                game_start(2);
-                break;
-            } else if (input == 27) {
-                clearScreen();
-                return;
-            }
+        if (is_key_pressed_syscall((unsigned char)SC_1)) {
+            game_start(1);
+            break;
+        } else if (is_key_pressed_syscall((unsigned char)SC_2)) {
+            game_start(2);
+            break;
+        } else if (is_key_pressed_syscall((unsigned char)SC_ESC)) {
+            clearScreen();
+            return;
         }
         for (volatile int i = 0; i < 100000; i++);
     }
@@ -100,18 +97,18 @@ void game_start(int num_players) {
     players[0].color = COLOR_PLAYER1;
     players[0].arrow_color = COLOR_TEXT_HOME;
     players[0].ball_color = COLOR_BALL1;
-    players[0].control_up = (char)0x80;
-    players[0].control_left = (char)0x82;
-    players[0].control_right = (char)0x83;
+    players[0].control_up = SC_UP;     // Usar scancode para flecha arriba
+    players[0].control_left = SC_LEFT;  // Usar scancode para flecha izquierda
+    players[0].control_right = SC_RIGHT; // Usar scancode para flecha derecha
     players[0].name = "Blanco";
 
     if (num_players == 2) {
         players[1].color = COLOR_PLAYER2;
         players[1].arrow_color = COLOR_TEXT_HOME;
         players[1].ball_color = COLOR_BALL2;
-        players[1].control_up = 'w';
-        players[1].control_left = 'a';
-        players[1].control_right = 'd';
+        players[1].control_up = SC_W;     // Usar scancode para W
+        players[1].control_left = SC_A;   // Usar scancode para A
+        players[1].control_right = SC_D;  // Usar scancode para D
         players[1].name = "Azul";
     }
 
@@ -187,34 +184,45 @@ void game_start(int num_players) {
             }
         }
 
-        char input = 0;
-        if (try_getchar(&input)) {
-            if (input == 27) { clearScreen(); break; }
-            for (int i = 0; i < num_players; i++) {
-                if (!players[i].ball_in_hole) {
-                    char effective_input = (i == 1) ? (input >= 'A' && input <= 'Z' ? input + 32 : input) : input;
-                    if ((i == 1 && effective_input == players[i].control_up) || 
-                        (i == 0 && effective_input == players[i].control_up)) {
-                        int new_x = players[i].x + (cos_table[players[i].angle] * 10) / 100;
-                        int new_y = players[i].y + (sin_table[players[i].angle] * 10) / 100;
-                        // Verifica límites de pantalla
-                        if (new_x >= PLAYER_RADIUS && new_x <= SCREEN_WIDTH - PLAYER_RADIUS &&
-                            new_y >= UI_TOP_MARGIN + PLAYER_RADIUS && new_y <= SCREEN_HEIGHT - PLAYER_RADIUS) {
-                            // Verifica que no pise el hoyo
-                            int dx = new_x - hole_x;
-                            int dy = new_y - hole_y;
-                            if (dx*dx + dy*dy > (PLAYER_RADIUS + 15)*(PLAYER_RADIUS + 15)) {
-                                players[i].x = new_x;
-                                players[i].y = new_y;
-                            }
+        // Control de los jugadores usando el nuevo sistema de detección de teclas
+        if (is_key_pressed_syscall((unsigned char)SC_ESC)) { 
+            clear_key_buffer(); // Limpiar buffer antes de salir
+            clearScreen(); 
+            break; 
+        }
+        
+        // Control de los jugadores
+        for (int i = 0; i < num_players; i++) {
+            if (!players[i].ball_in_hole) {
+                // Mover hacia adelante
+                if (is_key_pressed_syscall((unsigned char)players[i].control_up)) {
+                    int new_x = players[i].x + (cos_table[players[i].angle] * 6) / 100;
+                    int new_y = players[i].y + (sin_table[players[i].angle] * 6) / 100;
+                    // Verifica límites de pantalla
+                    if (new_x >= PLAYER_RADIUS && new_x <= SCREEN_WIDTH - PLAYER_RADIUS &&
+                        new_y >= UI_TOP_MARGIN + PLAYER_RADIUS && new_y <= SCREEN_HEIGHT - PLAYER_RADIUS) {
+                        // Verifica que no pise el hoyo
+                        int dx = new_x - hole_x;
+                        int dy = new_y - hole_y;
+                        if (dx*dx + dy*dy > (PLAYER_RADIUS + 15)*(PLAYER_RADIUS + 15)) {
+                            players[i].x = new_x;
+                            players[i].y = new_y;
                         }
-                    } else if ((i == 1 && effective_input == players[i].control_left) || 
-                             (i == 0 && effective_input == players[i].control_left)) {
-                        players[i].angle = (players[i].angle + 35) % 36;
-                    } else if ((i == 1 && effective_input == players[i].control_right) || 
-                             (i == 0 && effective_input == players[i].control_right)) {
-                        players[i].angle = (players[i].angle + 1) % 36;
                     }
+                }
+                
+                // Rotar a la izquierda - más lento
+                if (is_key_pressed_syscall((unsigned char)players[i].control_left)) {
+                    players[i].angle = (players[i].angle + 35) % 36;
+                    // Nota: No usamos sleep aquí para no bloquear la detección de otras teclas
+                    // La velocidad de rotación se controla con el sleep al final del bucle principal
+                }
+                
+                // Rotar a la derecha - más lento
+                if (is_key_pressed_syscall((unsigned char)players[i].control_right)) {
+                    players[i].angle = (players[i].angle + 1) % 36;
+                    // Nota: No usamos sleep aquí para no bloquear la detección de otras teclas
+                    // La velocidad de rotación se controla con el sleep al final del bucle principal
                 }
             }
         }
@@ -241,17 +249,31 @@ void game_start(int num_players) {
                                 sprintf(msg, "GANA %s! %s no logró meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[ganador_idx].name, players[perdedor].name);
                             }
                             displayFullScreenMessage(msg, COLOR_TEXT_HOME);
+                            
+                            // Reproducir sólo una nota como indicación sonora
+                            beep(G, 250);
+                            
+                            // Pequeño retraso para evitar detección inmediata de teclas
+                            sleep(100);
+                            
+                            // Limpiar cualquier tecla presionada antes de entrar al bucle
+                            clear_key_buffer();
+                            
                             while (1) {
-                                char input = 0;
-                                if (try_getchar(&input)) {
-                                    if (input == 27) { clearScreen(); return; }
-                                    else if (input == ' ' || input == '\n' || input == '\r') {
-                                        clearScreen();
-                                        game_start(num_players);
-                                        return;
-                                    }
+                                // Verificamos las teclas
+                                if (is_key_pressed_syscall((unsigned char)SC_ESC)) { 
+                                    clear_key_buffer();
+                                    clearScreen(); 
+                                    return; 
                                 }
-                                for (volatile int k = 0; k < 100000; k++);
+                                else if (is_key_pressed_syscall((unsigned char)SC_SPACE) || 
+                                         is_key_pressed_syscall((unsigned char)SC_ENTER)) {
+                                    clearScreen();
+                                    game_start(num_players);
+                                    return;
+                                }
+                                
+                                sleep(30); // Esperar menos tiempo para mejor respuesta
                             }
                         }
                         players[j].ball_vx = (cos_table[players[i].angle] * POWER_FACTOR) / 10;
@@ -361,20 +383,37 @@ void game_start(int num_players) {
                 }
             }
             displayFullScreenMessage(victory_msg, COLOR_TEXT_HOME);
+            
+            // Reproducir sólo una nota como indicación sonora en lugar de toda la melodía
+            // Esto evita bloquear la detección de teclas
+            beep(G, 250);
+            
+            // Pequeño retraso para evitar detección inmediata de teclas
+            sleep(100);
+            
+            // Limpiar cualquier tecla presionada antes de entrar al bucle
+            clear_key_buffer();
+            
             while (1) {
-                char input = 0;
-                if (try_getchar(&input)) {
-                    if (input == 27) { clearScreen(); return; }
-                    else if (input == ' ' || input == '\n' || input == '\r') {
-                        clearScreen();
-                        game_start(num_players);
-                        return;
-                    }
+                // Primero verificamos las teclas
+                if (is_key_pressed_syscall((unsigned char)SC_ESC)) { 
+                    clear_key_buffer();
+                    clearScreen(); 
+                    return; 
                 }
-                play_mission_impossible();
-                for (volatile int i = 0; i < 100000; i++);
+                else if (is_key_pressed_syscall((unsigned char)SC_SPACE) || 
+                         is_key_pressed_syscall((unsigned char)SC_ENTER)) {
+                    clearScreen();
+                    game_start(num_players);
+                    return;
+                }
+                
+                sleep(30); // Esperar menos tiempo para mejor respuesta
             }
         }
-        sleep(16);
+
+        // Limitamos la velocidad del juego para que no vaya demasiado rápido
+        // Controla tanto la velocidad del juego como la sensibilidad de rotación
+        sleep(25); // Este valor controla la velocidad general del juego
     }
 }

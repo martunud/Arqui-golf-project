@@ -21,6 +21,10 @@ char getchar(void) {
     return c;
 }
 
+int is_key_pressed_syscall(unsigned char scancode) {
+    return sys_is_key_pressed(scancode);
+}
+
 int strlen(const char *s) {
     int len = 0;
     while (s[len] != '\0') {
@@ -439,4 +443,13 @@ void video_putCharXY(int x, int y, char c, uint32_t fg, uint32_t bg) {
 
 void beep(int frequency, int duration) {
     sys_beep(frequency, duration);
+}
+
+// Función para limpiar el buffer del teclado
+// Esta función lee y descarta todas las teclas acumuladas en el buffer
+void clear_key_buffer() {
+    char c;
+    while (try_getchar(&c)) {
+        // Simplemente leer y descartar
+    }
 }
