@@ -5,6 +5,7 @@
 #define OK 0
 #define ERROR -1
 #define EXIT_CODE 1
+#define CMD_ERROR -2
 
 typedef int (*cmd_fn)(int argc, char *argv[]);
 

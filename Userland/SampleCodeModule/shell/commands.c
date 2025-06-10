@@ -40,7 +40,7 @@ int regsCmd(int argc, char *argv[]) {
 
 int helpCmd(int argc, char *argv[]){
     printf("%s", "Comandos disponibles:\n");
-    for(int i = 0; shellCmds[i].name; i++){
+    for(int i = 1; shellCmds[i].name; i++){
         printf("%s", shellCmds[i].name);
         printf("%s", shellCmds[i].help);
     }
@@ -77,13 +77,16 @@ int timeCmd(int argc, char *argv[]){
 }
 
 int fontSizeCmd(int argc, char *argv[]){
+    char input[10];
     int size;
+    
     printf("Ingrese el nuevo tamaño de la fuente (1-3): ");
-    scanf("%d", &size);
+    readLine(input, sizeof(input));
+    size = atoi(input);
     
     if(size < 1 || size > 3){
         printf("Tamaño inválido. Debe estar entre 1 y 3.\n");
-        return ERROR;
+        return CMD_ERROR;
     }
     
     setFontScale(size);
@@ -131,7 +134,7 @@ int fillCommandAndArgs(char *args[], char *input) {
 int exceptionCmd(int argc, char * argv[]) {
     if (argc != 2 || argv[1] == NULL) {
         printf("Error: cantidad invalida de argumentos.\nUso: exceptions [zero, invalidOpcode]\n");
-        return ERROR;
+        return CMD_ERROR;
     }
 
     if (strcmp(argv[1], "zero") == 0) {
@@ -146,7 +149,7 @@ int exceptionCmd(int argc, char * argv[]) {
     }
     else {
         printf("Error: tipo de excepcion invalido.\nIngrese exceptions [zero, invalidOpcode] para testear alguna operacion\n");
-        return ERROR;
+        return CMD_ERROR;
     }
 
     return OK;
