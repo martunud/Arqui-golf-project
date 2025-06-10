@@ -3,51 +3,6 @@
 #include "include/game_functions.h"
 
 
-typedef struct {
-    int freq;    // frecuencia en Hz (0 para silencio)
-    int dur_ms;  // duración en ms
-} MelodyNote;
-
-// Frecuencias según tu lista
-enum {
-    G   = 392,
-    A1  = 466,
-    C   = 262,
-    F   = 349,
-    F1  = 370,
-    Gb = 93
-};
-
-// “First” de Mission Impossible
-static const MelodyNote mission_first[] = {
-    { G, 500 }, { G, 400 }, { G, 250 }, { G, 250 },
-    { A1,250 }, { C, 250 }, { G, 250 }, { G, 250 },
-    { G, 250 }, { G, 250 }, { F, 250 }, { F1,250 },
-    { G, 500 } 
-};
-
-
-static const int mission_first_len = sizeof(mission_first)/sizeof(MelodyNote);
-
-// Función que toca la melodía
-void play_melody(const MelodyNote *mel, int len) {
-    for (int i = 0; i < len; i++) {
-        if (mel[i].freq > 20) {
-            beep(mel[i].freq, mel[i].dur_ms);
-        } else {
-            // silencio
-            sleep(mel[i].dur_ms);
-        }
-        // opcional: pequeño espacio extra
-        sleep(20);
-    }
-}
-
-// Llamar desde tu código de juego:
-void play_mission_impossible(void) {
-    play_melody(mission_first, mission_first_len);
-}
-
 // Pantalla principal del juego
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_HOME);
@@ -251,7 +206,7 @@ void game_start(int num_players) {
                             displayFullScreenMessage(msg, COLOR_TEXT_HOME);
                             
                             // Reproducir sólo una nota como indicación sonora
-                            beep(G, 250);
+                            beep(392, 250);
                             
                             // Pequeño retraso para evitar detección inmediata de teclas
                             sleep(100);
@@ -374,20 +329,19 @@ void game_start(int num_players) {
                 }
             } else {
                 if (players[ganador].ball_in_hole) {
-                    sprintf(victory_msg, "GANA %s! Logró meter la pelota en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
+                    sprintf(victory_msg, "GANA %s! Logro meter la pelota en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
                         players[ganador].name, players[ganador].golpes);
                 } else {
                     int perdedor = (ganador == 0) ? 1 : 0;
-                    sprintf(victory_msg, "GANA %s! %s no logró meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
+                    sprintf(victory_msg, "GANA %s! %s no logro meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
                         players[ganador].name, players[perdedor].name);
                 }
             }
             displayFullScreenMessage(victory_msg, COLOR_TEXT_HOME);
             
-            // Reproducir sólo una nota como indicación sonora en lugar de toda la melodía
-            // Esto evita bloquear la detección de teclas
-            beep(G, 250);
             
+            //beep(G, 250);
+            play_mission_impossible();
             // Pequeño retraso para evitar detección inmediata de teclas
             sleep(100);
             

@@ -58,4 +58,5 @@ void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, i
 void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, Player *players, int num_players);
 void drawTextFixed(int x, int y, const char *text, uint32_t color, uint32_t bg);
 void audiobounce();
+void play_mission_impossible();
 #endif

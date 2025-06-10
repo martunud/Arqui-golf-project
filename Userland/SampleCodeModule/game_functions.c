@@ -4,6 +4,32 @@
 const int cos_table[36] = {100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17,0,17,34,50,64,77,87,94,98};
 const int sin_table[36] = {0,17,34,50,64,77,87,94,98,100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17};
 
+typedef struct {
+    int freq;    // frecuencia en Hz (0 para silencio)
+    int dur_ms;  // duración en ms
+} MelodyNote;
+
+// Frecuencias según tu lista
+enum {
+    G   = 392,
+    A1  = 466,
+    C   = 262,
+    F   = 349,
+    F1  = 370,
+    Gb = 93
+};
+
+// “First” de Mission Impossible
+static const MelodyNote mission_first[] = {
+    { G, 500 }, { G, 400 }, { G, 250 }, { G, 250 },
+    { A1,250 }, { C, 250 }, { G, 250 }, { G, 250 },
+    { G, 250 }, { G, 250 }, { F, 250 }, { F1,250 },
+    { G, 500 } 
+};
+
+static const int mission_first_len = sizeof(mission_first)/sizeof(MelodyNote);
+
+
 // Dibuja un círculo
 void drawCircle(int cx, int cy, int radius, uint32_t color) {
     for (int y = -radius; y <= radius; y++) {
@@ -267,4 +293,19 @@ void drawTextFixed(int x, int y, const char *text, uint32_t color, uint32_t bg) 
 
 void audiobounce() {
     beep(500, 100);
+}
+
+static void play_melody(const MelodyNote *mel, int len) {
+    for (int i = 0; i < len; i++) {
+        if (mel[i].freq > 20) {
+            beep(mel[i].freq, mel[i].dur_ms);
+        } else {
+            sleep(mel[i].dur_ms);
+        }
+        sleep(20);
+    }
+}
+
+void play_mission_impossible(void) {
+    play_melody(mission_first, mission_first_len);
 }
