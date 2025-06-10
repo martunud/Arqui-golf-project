@@ -14,15 +14,15 @@
 #define COLOR_TEXT_WHITE 0xFFFFFF
 #define COLOR_BLACK 0x000000 
 
-#define SCREEN_WIDTH 1024
-#define SCREEN_HEIGHT 768
-#define UI_TOP_MARGIN 32
-#define PLAYER_RADIUS 10
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
+#define UI_TOP_MARGIN (SCREEN_HEIGHT / 24)
+#define PLAYER_RADIUS (SCREEN_WIDTH / 100)
 
 #define FRICTION 95         
 #define MIN_VELOCITY 1      
 #define BOUNCE_FACTOR 90    
-#define POWER_FACTOR 20
+#define POWER_FACTOR (SCREEN_WIDTH / 50)
 
 extern const int cos_table[36];
 extern const int sin_table[36];
@@ -59,4 +59,5 @@ void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, 
 void drawTextFixed(int x, int y, const char *text, uint32_t color, uint32_t bg);
 void audiobounce();
 void play_mission_impossible();
+void init_screen_dimensions();
 #endif

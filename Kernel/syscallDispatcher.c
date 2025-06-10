@@ -17,6 +17,7 @@ static SyscallHandler syscallHandlers[] = {
     (SyscallHandler)syscall_get_regs, // syscall 11
     (SyscallHandler)syscall_is_key_pressed, // syscall 12
     (SyscallHandler)syscall_shutdown, // syscall 13
+    (SyscallHandler)syscall_get_screen_dimensions, // syscall 14
 };
 
 #define SYSCALLS_COUNT (sizeof(syscallHandlers) / sizeof(syscallHandlers[0]))

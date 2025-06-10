@@ -68,4 +68,6 @@ uint64_t syscall_is_key_pressed(uint64_t scancode);
  */
 uint64_t syscall_shutdown(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5);
 
+uint64_t syscall_get_screen_dimensions(uint64_t *width, uint64_t *height);
+
 #endif

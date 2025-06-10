@@ -15,6 +15,7 @@ GLOBAL sys_video_putCharXY
 GLOBAL sys_regs
 GLOBAL sys_is_key_pressed
 GLOBAL sys_shutdown
+GLOBAL sys_screenDims
 
 
 
@@ -140,6 +141,15 @@ sys_shutdown:
     push rbp
     mov rbp, rsp
     mov rax, 13    
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_screenDims:
+    push rbp
+    mov rbp, rsp
+    mov rax, 14    
     int 0x80
     mov rsp, rbp
     pop rbp

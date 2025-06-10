@@ -53,5 +53,6 @@ char *toLower(char *str);
 void shutdown();
 
 
+int getScreenDims(uint64_t *width, uint64_t *height);
 
 #endif

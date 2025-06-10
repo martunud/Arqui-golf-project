@@ -127,3 +127,12 @@ uint64_t syscall_shutdown(uint64_t unused1, uint64_t unused2, uint64_t unused3, 
     
     return 0; 
 }
+
+uint64_t syscall_get_screen_dimensions(uint64_t *width, uint64_t *height) {
+    if (width == NULL || height == NULL) {
+        return 0;
+    }
+    *width = video_get_width();
+    *height = video_get_height();
+    return 1;
+}

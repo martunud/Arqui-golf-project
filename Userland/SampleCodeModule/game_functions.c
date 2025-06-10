@@ -1,6 +1,21 @@
 #include "include/lib.h"
 #include "include/game_functions.h"
 
+int SCREEN_WIDTH;
+int SCREEN_HEIGHT;
+
+void init_screen_dimensions() {
+    uint64_t width, height;
+    if (getScreenDims(&width, &height)) {
+        SCREEN_WIDTH = width;
+        SCREEN_HEIGHT = height;
+    } else {
+        // Valores por defecto en caso de error
+        SCREEN_WIDTH = 1024;
+        SCREEN_HEIGHT = 768;
+    }
+}
+
 const int cos_table[36] = {100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17,0,17,34,50,64,77,87,94,98};
 const int sin_table[36] = {0,17,34,50,64,77,87,94,98,100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17};
 
@@ -19,7 +34,7 @@ enum {
     Gb = 93
 };
 
-// “First” de Mission Impossible
+// "First" de Mission Impossible
 static const MelodyNote mission_first[] = {
     { G, 500 }, { G, 400 }, { G, 250 }, { G, 250 },
     { A1,250 }, { C, 250 }, { G, 250 }, { G, 250 },

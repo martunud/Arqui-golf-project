@@ -246,3 +246,12 @@ void video_putCharXY(char c, int x, int y, uint32_t fg, uint32_t bg) {
         }
     }
 }
+
+uint16_t video_get_width() {
+    return VBEModeInfo->width;
+}
+
+uint16_t video_get_height() {
+    return VBEModeInfo->height;
+}
+

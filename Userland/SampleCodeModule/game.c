@@ -5,6 +5,7 @@
 
 // Pantalla principal del juego
 void game_main_screen() {
+    init_screen_dimensions();
     video_clearScreenColor(COLOR_BG_HOME);
     const char *lines[] = {
         "Bienvenido a Pongis-Golf",

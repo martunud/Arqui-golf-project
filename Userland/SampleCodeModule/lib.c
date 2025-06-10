@@ -471,3 +471,7 @@ char *toLower(char *str) {
 void shutdown() {
      sys_shutdown();
 }
+
+int getScreenDims(uint64_t *width, uint64_t *height) {
+    return sys_screenDims(width, height);
+}
