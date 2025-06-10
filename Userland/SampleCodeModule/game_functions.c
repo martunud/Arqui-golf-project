@@ -185,6 +185,10 @@ void drawFullWidthBar(int y, int height, uint32_t color) {
 
 // Muestra un mensaje a pantalla completa
 void displayFullScreenMessage(const char *message, uint32_t textColor) {
+    int original_font_size = current_font_scale;
+    
+    setFontScale(1);
+    
     for (int y = 0; y < SCREEN_HEIGHT; y++) {
         for (int x = 0; x < SCREEN_WIDTH; x++) {
             video_putPixel(x, y, COLOR_BLACK);
@@ -205,10 +209,11 @@ void displayFullScreenMessage(const char *message, uint32_t textColor) {
     while (*temp) { messageLen++; temp++; }
     drawTextWithBg(centerX - (messageLen * 4), centerY - 50, message, textColor, COLOR_BLACK);
     for (int y = centerY - 30; y < centerY - 25; y++) {
-        for (int x = centerX - (messageLen * 5); x < centerX + (messageLen * 5); x++) {
+        for (int x = centerX - (messageLen * 4); x < centerX + (messageLen * 4); x++) {
             video_putPixel(x, y, textColor);
         }
     }
+    setFontScale(original_font_size);
 }
 
 // Dibuja la flecha del jugador

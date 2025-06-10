@@ -402,7 +402,10 @@ void getTime(char *buffer) {
     buffer[8] = '\0';
 }
 
+int current_font_scale = 1;
+
 void setFontScale(int scale) {
+    current_font_scale = scale; 
     sys_setFontScale(scale);
 }
 

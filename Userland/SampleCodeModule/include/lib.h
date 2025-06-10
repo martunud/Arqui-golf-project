@@ -20,6 +20,7 @@ typedef struct {
     uint64_t rax, rbx, rcx, rdx, rbp, rdi, rsi, r8, r9, r10, r11, r12, r13, r14, r15, rip, rsp, rflags;
 } CPURegisters;
 
+extern int current_font_scale;
 
 void putchar(char c);
 char getchar();
@@ -50,4 +51,7 @@ int is_key_pressed_syscall(unsigned char scancode);
 void clear_key_buffer();
 char *toLower(char *str);
 void shutdown();
+
+
+
 #endif
