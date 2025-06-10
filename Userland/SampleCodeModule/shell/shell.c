@@ -19,6 +19,12 @@ void shellLoop() {
 
         if (buffer[len - 1] == '\n') buffer[len - 1] = '\0';
 
+        for(int i=0; buffer[i]!='\0'; i++){
+            if(buffer[i] >= 'A' && buffer[i] <= 'Z'){
+                buffer[i] = buffer[i] + 32;
+            }
+        }
+
         if (CommandParse(buffer) == ERROR) {
             printf("%s", NOT_FOUND_MESSAGE);
         }

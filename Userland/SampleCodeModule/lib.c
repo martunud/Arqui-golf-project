@@ -453,3 +453,14 @@ void clear_key_buffer() {
         // Simplemente leer y descartar
     }
 }
+
+char *toLower(char *str) {
+    char *original = str;
+    while(*str){
+        if(*str >= 'A' && *str <= 'Z'){
+            *str = *str + 32;
+        }
+        str++;
+    }
+    return original;
+}
