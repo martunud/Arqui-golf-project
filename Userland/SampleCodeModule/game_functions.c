@@ -64,7 +64,7 @@ void drawTextWithBg(int x, int y, const char *text, uint32_t textColor, uint32_t
     }
 }
 
-// Borra la pelota anterior de forma inteligente
+// Borra la pelota anterior
 void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_players, int hole_x, int hole_y) {
     for (int y = -5; y <= 5; y++) {
         for (int x = -5; x <= 5; x++) {
@@ -80,11 +80,23 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
                             break;
                         }
                     }
+                    
+                    if (!painted) {
+                        for (int j = 0; j < num_players; j++) {
+                            if (prev_ball_x != players[j].ball_x || prev_ball_y != players[j].ball_y) {
+                                if ((px - players[j].ball_x)*(px - players[j].ball_x) + (py - players[j].ball_y)*(py - players[j].ball_y) <= 5*5) {
+                                    video_putPixel(px, py, players[j].ball_color);
+                                    painted = 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
                     if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
                         video_putPixel(px, py, COLOR_BLACK);
                         painted = 1;
                     }
-                    // Si no hay nada, pinta fondo
                     if (!painted) {
                         video_putPixel(px, py, COLOR_BG_GREEN);
                     }
@@ -94,7 +106,7 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
     }
 }
 
-// Borra el jugador anterior de forma inteligente
+// Borra el jugador anterior
 void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, int hole_x, int hole_y) {
     for (int y = -PLAYER_RADIUS; y <= PLAYER_RADIUS; y++) {
         for (int x = -PLAYER_RADIUS; x <= PLAYER_RADIUS; x++) {
