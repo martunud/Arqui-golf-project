@@ -182,6 +182,33 @@ void game_start(int num_players) {
                     int dy = players[j].ball_y - players[i].y;
                     int dist_squared = dx*dx + dy*dy;
                     if (dist_squared <= (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5) && players[i].puede_golpear) {
+                        // Si el jugador intenta un 7mo toque, pierde instantáneamente
+                        if (i == j && players[i].golpes >= 6 && ganador == -1) {
+                            ganador = (i == 0) ? 1 : 0; // El otro jugador gana
+                            players[i].debe_verificar_derrota = 1;
+                            // Mostrar mensaje de derrota inmediatamente
+                            char msg[120];
+                            if (num_players == 1) {
+                                sprintf(msg, "DERROTA! No lograste meter la pelota en 6 golpes. Presiona Espacio/ENTER para reintentar o ESC para salir.");
+                            } else {
+                                int perdedor = i;
+                                int ganador_idx = (i == 0) ? 1 : 0;
+                                sprintf(msg, "GANA %s! %s no logró meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[ganador_idx].name, players[perdedor].name);
+                            }
+                            displayFullScreenMessage(msg, COLOR_TEXT_HOME);
+                            while (1) {
+                                char input = 0;
+                                if (try_getchar(&input)) {
+                                    if (input == 27) { clearScreen(); return; }
+                                    else if (input == ' ' || input == '\n' || input == '\r') {
+                                        clearScreen();
+                                        game_start(num_players);
+                                        return;
+                                    }
+                                }
+                                for (volatile int k = 0; k < 100000; k++);
+                            }
+                        }
                         players[j].ball_vx = (cos_table[players[i].angle] * POWER_FACTOR) / 10;
                         players[j].ball_vy = (sin_table[players[i].angle] * POWER_FACTOR) / 10;
                         if (i == j && players[i].golpes < 6) {
@@ -189,9 +216,6 @@ void game_start(int num_players) {
                         }
                         players[i].puede_golpear = 0;
                         audiobounce();
-                        if (i == j && players[i].golpes >= 6 && ganador == -1) {
-                            players[i].debe_verificar_derrota = 1;
-                        }
                     }
                 }
             }
