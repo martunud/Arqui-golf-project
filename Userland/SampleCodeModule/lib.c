@@ -464,3 +464,7 @@ char *toLower(char *str) {
     }
     return original;
 }
+
+void shutdown() {
+    sys_shutdown();
+}

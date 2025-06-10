@@ -49,5 +49,6 @@ int get_regs(uint64_t *r);
 int is_key_pressed_syscall(unsigned char scancode);
 void clear_key_buffer();
 char *toLower(char *str);
+void shutdown();
 
 #endif

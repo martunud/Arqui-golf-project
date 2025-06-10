@@ -25,8 +25,11 @@ void shellLoop() {
             }
         }
 
-        if (CommandParse(buffer) == ERROR) {
+        int result = CommandParse(buffer);
+        if (result == ERROR) {
             printf("%s", NOT_FOUND_MESSAGE);
+        } else if (result == EXIT_CODE) {
+            break; 
         }
     }
 }

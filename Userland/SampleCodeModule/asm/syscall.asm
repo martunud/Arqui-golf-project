@@ -14,7 +14,7 @@ GLOBAL sys_video_clearScreenColor
 GLOBAL sys_video_putCharXY
 GLOBAL sys_regs
 GLOBAL sys_is_key_pressed
-
+GLOBAL sys_shutdown
 
 
 sys_read:
@@ -130,6 +130,15 @@ sys_is_key_pressed:
     mov rbp, rsp
     mov rax, 12
     mov rdi, rdi    ; scancode ya debe estar en rdi
+    int 0x80
+    mov rsp, rbp
+    pop rbp
+    ret
+
+sys_shutdown:
+    push rbp
+    mov rbp, rsp
+    mov rax, 13  
     int 0x80
     mov rsp, rbp
     pop rbp

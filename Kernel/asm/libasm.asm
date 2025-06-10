@@ -4,6 +4,7 @@ GLOBAL getScanCode
 GLOBAL _readTime
 GLOBAL inb
 GLOBAL outb
+GLOBAL outw
 
 section .text
 	
@@ -73,6 +74,18 @@ outb:
     mov al, sil
     out dx, al    
 
+    mov rsp, rbp
+    pop rbp
+    ret
+
+outw:
+    push rbp
+    mov rbp, rsp
+    
+    mov rdx, rdi    
+    mov rax, rsi    
+    out dx, ax
+    
     mov rsp, rbp
     pop rbp
     ret

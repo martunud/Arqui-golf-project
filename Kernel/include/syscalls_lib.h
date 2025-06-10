@@ -60,4 +60,11 @@ uint64_t syscall_video_putCharXY(uint64_t c, uint64_t x, uint64_t y, uint64_t fg
  */
 uint64_t syscall_is_key_pressed(uint64_t scancode);
 
+/*
+ * Apaga el sistema (detiene la ejecución del CPU)
+ * No recibe parámetros
+ * No retorna
+ */
+uint64_t syscall_shutdown(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5);
+
 #endif

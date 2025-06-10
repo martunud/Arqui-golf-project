@@ -32,7 +32,7 @@ uint64_t syscall_read(int fd, char *buffer, int count) {
     c = keyboard_read_getchar();
     if (c == 0) break;
     buffer[read++] = c;
-    if (c == '\n') break; // Terminar en salto de línea
+    if (c == '\n') break; 
 }
 
     return read;
@@ -85,11 +85,11 @@ uint64_t syscall_sleep(int duration) {
 
 uint64_t syscall_setFontScale(int scale) {
     if (scale < 1 || scale > 5) {
-        return 0; // Tamaño inválido
+        return 0; 
     }
     
     setFontScale(scale);
-    return 1; // Éxito
+    return 1; 
 }
 
 uint64_t syscall_video_putPixel(uint64_t x, uint64_t y, uint64_t color, uint64_t unused1, uint64_t unused2) {
@@ -114,4 +114,16 @@ uint64_t syscall_video_putCharXY(uint64_t c, uint64_t x, uint64_t y, uint64_t fg
 
 uint64_t syscall_is_key_pressed(uint64_t scancode) {
     return (uint64_t)is_key_pressed((uint8_t)scancode);
+}
+
+uint64_t syscall_shutdown(uint64_t unused1, uint64_t unused2, uint64_t unused3, uint64_t unused4, uint64_t unused5) {
+    outw(0x604, 0x2000);
+    
+    _cli();
+    
+    while(1) {
+        _hlt();
+    }
+    
+    return 0; 
 }

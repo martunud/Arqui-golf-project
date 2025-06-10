@@ -47,10 +47,12 @@ int helpCmd(int argc, char *argv[]){
     return OK;
 }
 
-int exitCmd(int argc, char *argv[]){
+int exitCmd(int argc, char *argv[]) {
     clearScreen();
     printf("%s", "Saliendo del shell...\n");
-    return EXIT_CODE;    
+    sleep(1000);
+    shutdown();
+    return EXIT_CODE;
 }
 
 int setUserCmd(int argc, char *argv[]){
