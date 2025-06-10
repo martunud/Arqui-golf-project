@@ -5,6 +5,7 @@
 #include "registers.h"
 
 
+extern void outw(uint16_t port, uint16_t value);
 
 uint64_t syscall_get_regs(uint64_t *dest);
 
