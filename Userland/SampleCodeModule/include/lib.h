@@ -29,7 +29,7 @@ int printf(const char *fmt, ...);
 int strlen(const char *s);
 void strncpy(char *dest, const char *src, size_t n);
 int strcmp(const char *s1, const char *s2);
-int atoi(char* str);
+int atoi(const char *str);
 char *fgets(char *s, int n, int fd);
 void clearScreen();
 int sprintf(char *str, const char *fmt, ...);

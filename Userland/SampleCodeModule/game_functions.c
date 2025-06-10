@@ -1,6 +1,8 @@
 #include "include/lib.h"
 #include "include/game_functions.h"
 
+#define abs(x) ((x) < 0 ? -(x) : (x))
+
 int SCREEN_WIDTH;
 int SCREEN_HEIGHT;
 
@@ -18,6 +20,9 @@ void init_screen_dimensions() {
 
 const int cos_table[36] = {100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17,0,17,34,50,64,77,87,94,98};
 const int sin_table[36] = {0,17,34,50,64,77,87,94,98,100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17};
+
+// Variable global para el nivel actual
+int current_level = 1;
 
 typedef struct {
     int freq;    // frecuencia en Hz (0 para silencio)
@@ -80,7 +85,7 @@ void drawTextWithBg(int x, int y, const char *text, uint32_t textColor, uint32_t
 }
 
 // Borra la pelota anterior
-void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_players, int hole_x, int hole_y) {
+void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_players, int hole_x, int hole_y, Obstacle *obstacles, int num_obstacles) {
     for (int y = -5; y <= 5; y++) {
         for (int x = -5; x <= 5; x++) {
             if (x*x + y*y <= 5*5) {
@@ -88,11 +93,20 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
                 int py = prev_ball_y + y;
                 if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
                     int painted = 0;
-                    for (int j = 0; j < num_players; j++) {
-                        if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
-                            video_putPixel(px, py, players[j].color);
-                            painted = 1;
-                            break;
+                    
+                    // Verificar si es un obstáculo
+                    if (point_in_obstacle(px, py, obstacles, num_obstacles)) {
+                        video_putPixel(px, py, COLOR_BROWN);
+                        painted = 1;
+                    }
+                    
+                    if (!painted) {
+                        for (int j = 0; j < num_players; j++) {
+                            if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
+                                video_putPixel(px, py, players[j].color);
+                                painted = 1;
+                                break;
+                            }
                         }
                     }
                     
@@ -122,7 +136,7 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
 }
 
 // Borra el jugador anterior
-void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, int hole_x, int hole_y) {
+void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, int hole_x, int hole_y, Obstacle *obstacles, int num_obstacles) {
     for (int y = -PLAYER_RADIUS; y <= PLAYER_RADIUS; y++) {
         for (int x = -PLAYER_RADIUS; x <= PLAYER_RADIUS; x++) {
             if (x*x + y*y <= PLAYER_RADIUS*PLAYER_RADIUS) {
@@ -130,13 +144,22 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
                 int py = prev_y + y;
                 if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
                     int painted = 0;
-                    // Repinta otro jugador si corresponde
-                    for (int j = 0; j < num_players; j++) {
-                        if (prev_x != players[j].x || prev_y != players[j].y) {
-                            if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
-                                video_putPixel(px, py, players[j].color);
-                                painted = 1;
-                                break;
+                    
+                    // Verificar si es un obstáculo
+                    if (point_in_obstacle(px, py, obstacles, num_obstacles)) {
+                        video_putPixel(px, py, COLOR_BROWN);
+                        painted = 1;
+                    }
+                    
+                    if (!painted) {
+                        // Repinta otro jugador si corresponde
+                        for (int j = 0; j < num_players; j++) {
+                            if (prev_x != players[j].x || prev_y != players[j].y) {
+                                if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
+                                    video_putPixel(px, py, players[j].color);
+                                    painted = 1;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -169,17 +192,15 @@ int isInsideHole(int x, int y, int h_x, int h_y) {
     return (dx*dx + dy*dy <= 15*15);
 }
 
-unsigned int next_rand = 12345; 
-
-// Generador de números pseudoaleatorios
-unsigned int rand() {
+// Reemplazo la implementación de rand por my_rand
+unsigned int next_rand = 12345;
+int my_rand(void) {
     next_rand = next_rand * 1103515245 + 12345;
     return (unsigned int)(next_rand / 65536) % 32768;
 }
 
-// Devuelve un número aleatorio en el rango [min, max]
 int rand_range(int min, int max) {
-    return min + (rand() % (max - min + 1));
+    return min + (my_rand() % (max - min + 1));
 }
 
 // Devuelve 1 si dos círculos se superponen
@@ -232,11 +253,12 @@ void displayFullScreenMessage(const char *message, uint32_t textColor) {
 }
 
 // Dibuja la flecha del jugador
-void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y, int arrow_color, Player *players, int num_players) {
+void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y, int arrow_color, Player *players, int num_players, Obstacle *obstacles, int num_obstacles) {
     int arrow_len = 18;
     int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
     int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
     if (arrow_y < UI_TOP_MARGIN + 5) return;
+    if (point_in_obstacle(arrow_x, arrow_y, obstacles, num_obstacles)) return;
     #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= UI_TOP_MARGIN && (y) < SCREEN_HEIGHT)
     int arrow_points[5][2] = {
         {arrow_x, arrow_y},
@@ -248,37 +270,19 @@ void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, i
     for (int i = 0; i < 5; i++) {
         int px = arrow_points[i][0];
         int py = arrow_points[i][1];
-        if (IN_SCREEN(px, py)) {
-            if (!isInsideHole(px, py, hole_x, hole_y)) {
-                int isInsideBall = 0;
-                for (int j = 0; j < num_players; j++) {
-                    if (circles_overlap(px, py, 1, players[j].ball_x, players[j].ball_y, 5)) {
-                        isInsideBall = 1;
-                        break;
-                    }
-                }
-                int isInsidePlayer = 0;
-                for (int j = 0; j < num_players; j++) {
-                    if (circles_overlap(px, py, 1, players[j].x, players[j].y, PLAYER_RADIUS)) {
-                        isInsidePlayer = 1;
-                        break;
-                    }
-                }
-                if (!isInsideBall && !isInsidePlayer) {
-                    video_putPixel(px, py, arrow_color);
-                }
-            }
+        if (IN_SCREEN(px, py) && !point_in_obstacle(px, py, obstacles, num_obstacles)) {
+            video_putPixel(px, py, arrow_color);
         }
     }
     #undef IN_SCREEN
 }
 
 // Borra la flecha anterior
-void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, Player *players, int num_players) {
+void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, Player *players, int num_players, Obstacle *obstacles, int num_obstacles) {
     int prev_arrow_len = 18;
     int prev_arrow_x = prev_x + (cos_table[prev_angle] * prev_arrow_len) / 100;
     int prev_arrow_y = prev_y + (sin_table[prev_angle] * prev_arrow_len) / 100;
-    if (prev_arrow_y >= UI_TOP_MARGIN + 5) {
+    if (prev_arrow_y >= UI_TOP_MARGIN + 5 && !point_in_obstacle(prev_arrow_x, prev_arrow_y, obstacles, num_obstacles)) {
         #define IN_SCREEN(x, y) ((x) >= 0 && (x) < SCREEN_WIDTH && (y) >= UI_TOP_MARGIN && (y) < SCREEN_HEIGHT)
         int arrow_points[5][2] = {
             {prev_arrow_x, prev_arrow_y},
@@ -290,7 +294,7 @@ void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, 
         for (int i = 0; i < 5; i++) {
             int px = arrow_points[i][0];
             int py = arrow_points[i][1];
-            if (IN_SCREEN(px, py)) {
+            if (IN_SCREEN(px, py) && !point_in_obstacle(px, py, obstacles, num_obstacles)) {
                 if (isInsideHole(px, py, hole_x, hole_y)) {
                     video_putPixel(px, py, COLOR_BLACK);
                 } else {
@@ -302,6 +306,14 @@ void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, 
                             video_putPixel(px, py, players[j].color);
                             painted = 1;
                             break;
+                        }
+                    }
+                    
+                    if (!painted) {
+                        // Verificar si es un obstáculo
+                        if (point_in_obstacle(px, py, obstacles, num_obstacles)) {
+                            video_putPixel(px, py, COLOR_BROWN);
+                            painted = 1;
                         }
                     }
                     
@@ -353,4 +365,174 @@ static void play_melody(const MelodyNote *mel, int len) {
 
 void play_mission_impossible(void) {
     play_melody(mission_first, mission_first_len);
+}
+
+// Funciones para manejar el nivel
+void increment_level() {
+    current_level++;
+    if (current_level > MAX_OBSTACLES) {
+        current_level = MAX_OBSTACLES; // Limitar el nivel máximo
+    }
+}
+
+void reset_level() {
+    current_level = 1;
+}
+
+int get_current_level() {
+    return current_level;
+}
+
+// Calcula el factor de potencia de la pelota basado en el nivel
+// Nivel 1: 100% de velocidad, Nivel 20: 60% de velocidad (mínimo)
+int get_ball_power_factor(int level) {
+    int base_power = POWER_FACTOR;
+    if (level <= 1) return base_power;
+    if (level >= 20) return (base_power * 60) / 100; // 60% del poder original
+    
+    // Reducción gradual: de 100% en nivel 1 a 60% en nivel 20
+    // Reducción = 40% en 19 niveles = ~2.1% por nivel
+    int reduction_percent = ((level - 1) * 40) / 19;
+    return (base_power * (100 - reduction_percent)) / 100;
+}
+
+// Calcula el radio del hoyo basado en el nivel
+// Nivel 1: radio 15, Nivel 20: radio 8 (mínimo)
+int get_hole_radius(int level) {
+    if (level <= 1) return 15;
+    if (level >= 20) return 8; // Radio mínimo
+    
+    // Reducción gradual: de 15 en nivel 1 a 8 en nivel 20
+    // Reducción = 7 unidades en 19 niveles
+    int reduction = ((level - 1) * 7) / 19;
+    return 15 - reduction;
+}
+
+void generate_obstacles(Obstacle *obstacles, int *num_obstacles, int level, int hole_x, int hole_y) {
+    // Calcular número de obstáculos basado en el nivel
+    // Nivel 1: 0 obstáculos, Nivel 2: 1 obstáculo, Nivel 3: 2 obstáculos, etc.
+    // Máximo 20 obstáculos
+    int count = level - 1; // Empieza con 0 obstáculos en nivel 1
+    if (count < 0) count = 0; // Asegurar que no sea negativo
+    if (count > 20) count = 20; // Máximo 20 obstáculos
+    
+    // Tamaños más pequeños y variados
+    int min_size = 15, max_size = 35;
+    int tries = 0;
+    int i = 0;
+    
+    while (i < count && tries < 1000) {
+        int size = rand_range(min_size, max_size);
+        int x = rand_range(0, SCREEN_WIDTH - size - 1);
+        int y = rand_range(UI_TOP_MARGIN, SCREEN_HEIGHT - size - 1);
+        
+        // No sobre el hoyo (área más amplia de protección)
+        int hx = hole_x, hy = hole_y;
+        if (hx >= x-30 && hx <= x+size+30 && hy >= y-30 && hy <= y+size+30) { 
+            tries++; 
+            continue; 
+        }
+        
+        // No superpuestos con otros obstáculos (mayor separación)
+        int overlap = 0;
+        for (int j = 0; j < i; j++) {
+            if (!(x+size+15 < obstacles[j].x || x > obstacles[j].x+obstacles[j].size+15 ||
+                  y+size+15 < obstacles[j].y || y > obstacles[j].y+obstacles[j].size+15)) {
+                overlap = 1; 
+                break;
+            }
+        }
+        if (overlap) { 
+            tries++; 
+            continue; 
+        }
+        
+        obstacles[i].x = x;
+        obstacles[i].y = y;
+        obstacles[i].size = size;
+        i++;
+    }
+    *num_obstacles = i;
+}
+
+void draw_obstacles(Obstacle *obstacles, int num_obstacles) {
+    for (int i = 0; i < num_obstacles; i++) {
+        int x0 = obstacles[i].x, y0 = obstacles[i].y, s = obstacles[i].size;
+        for (int y = y0; y < y0 + s; y++) {
+            for (int x = x0; x < x0 + s; x++) {
+                video_putPixel(x, y, COLOR_BROWN);
+            }
+        }
+    }
+}
+
+int point_in_obstacle(int x, int y, Obstacle *obstacles, int num_obstacles) {
+    for (int i = 0; i < num_obstacles; i++) {
+        if (x >= obstacles[i].x && x < obstacles[i].x + obstacles[i].size &&
+            y >= obstacles[i].y && y < obstacles[i].y + obstacles[i].size) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int circle_obstacle_collision(int cx, int cy, int radius, Obstacle *obstacles, int num_obstacles, int *collided_index) {
+    for (int i = 0; i < num_obstacles; i++) {
+        int left = obstacles[i].x, right = obstacles[i].x + obstacles[i].size;
+        int top = obstacles[i].y, bottom = obstacles[i].y + obstacles[i].size;
+        int closest_x = (cx < left) ? left : (cx > right ? right : cx);
+        int closest_y = (cy < top) ? top : (cy > bottom ? bottom : cy);
+        int dx = cx - closest_x, dy = cy - closest_y;
+        if (dx*dx + dy*dy <= radius*radius) {
+            if (collided_index) *collided_index = i;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void bounce_ball_on_obstacle(int *vx, int *vy, int *ball_x, int *ball_y, int radius, Obstacle *obstacles, int num_obstacles) {
+    int idx;
+    if (!circle_obstacle_collision(*ball_x, *ball_y, radius, obstacles, num_obstacles, &idx)) return;
+    Obstacle *o = &obstacles[idx];
+    int left = o->x, right = o->x + o->size;
+    int top = o->y, bottom = o->y + o->size;
+
+    // Determinar en qué lado del obstáculo está la pelota
+    // basándose en la posición del centro de la pelota
+    int center_x = *ball_x;
+    int center_y = *ball_y;
+    
+    // Calcular distancias del centro a cada borde
+    int dist_to_left = center_x - left;
+    int dist_to_right = right - center_x;
+    int dist_to_top = center_y - top;
+    int dist_to_bottom = bottom - center_y;
+    
+    // Encontrar el lado más cercano
+    int min_dist = dist_to_left;
+    int side = 0; // 0:left, 1:right, 2:top, 3:bottom
+    
+    if (dist_to_right < min_dist) { min_dist = dist_to_right; side = 1; }
+    if (dist_to_top < min_dist) { min_dist = dist_to_top; side = 2; }
+    if (dist_to_bottom < min_dist) { min_dist = dist_to_bottom; side = 3; }
+    
+    // Rebote idéntico al de los bordes: simple inversión de velocidad
+    if (side == 0) {
+        // Lado izquierdo: invertir vx y colocar fuera del obstáculo
+        *vx = -(*vx);
+        *ball_x = left - radius;
+    } else if (side == 1) {
+        // Lado derecho: invertir vx y colocar fuera del obstáculo
+        *vx = -(*vx);
+        *ball_x = right + radius;
+    } else if (side == 2) {
+        // Lado superior: invertir vy y colocar fuera del obstáculo
+        *vy = -(*vy);
+        *ball_y = top - radius;
+    } else if (side == 3) {
+        // Lado inferior: invertir vy y colocar fuera del obstáculo
+        *vy = -(*vy);
+        *ball_y = bottom + radius;
+    }
 }
