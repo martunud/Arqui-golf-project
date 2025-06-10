@@ -17,6 +17,7 @@ GLOBAL sys_is_key_pressed
 GLOBAL sys_shutdown
 
 
+
 sys_read:
     push rbp
     mov rbp, rsp
@@ -138,7 +139,7 @@ sys_is_key_pressed:
 sys_shutdown:
     push rbp
     mov rbp, rsp
-    mov rax, 13  
+    mov rax, 13    
     int 0x80
     mov rsp, rbp
     pop rbp
