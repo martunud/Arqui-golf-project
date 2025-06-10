@@ -117,36 +117,29 @@ char keyboard_read_getchar() {
 }
 
 static char scToAscii(uint8_t scancode) {
-    char c = 0;
-
-    // Primero chequea flechas
+    // Primero chequea flechas y otras teclas especiales
     switch (scancode) {
+        case 1:
         case SC_UP:
-            c = KEY_ARROW_UP;
-            break;
         case SC_DOWN:
-            c = KEY_ARROW_DOWN;
-            break;
         case SC_LEFT:
-            c = KEY_ARROW_LEFT;
-            break;
         case SC_RIGHT:
-            c = KEY_ARROW_RIGHT;
-            break;
+        case ESC:
+        case SC_DELETE:
+            return 0;  // No devolvemos caracter para teclas especiales
         default:
             break;
     }
-    if (c != 0)
-        return c;
 
-    // Si no es flecha, busca en la tabla
+    // Si no es tecla especial, busca en la tabla
     if (scancode < KEY_COUNT) {
-        c = scancode_table[scancode][activeShift];
+        char c = scancode_table[scancode][activeShift];
         if (activeCapsLock && c >= 'a' && c <= 'z') {
             c -= 32;
         }
+        return c;
     }
-    return c;
+    return 0;
 }
 
 // Implementación de la función is_key_pressed
