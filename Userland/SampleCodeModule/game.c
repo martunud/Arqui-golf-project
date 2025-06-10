@@ -68,14 +68,15 @@ void game_start(int num_players) {
     
     video_clearScreenColor(COLOR_BG_GREEN);
     int margin = 50;
-    int hole_x = rand_range(margin + 15, SCREEN_WIDTH - margin - 15);
-    int hole_y = rand_range(UI_TOP_MARGIN + margin + 15, SCREEN_HEIGHT - margin - 15);
+    int hole_radius = get_hole_radius(get_current_level()); // Radio dinámico del hoyo
+    int hole_x = rand_range(margin + hole_radius, SCREEN_WIDTH - margin - hole_radius);
+    int hole_y = rand_range(UI_TOP_MARGIN + margin + hole_radius, SCREEN_HEIGHT - margin - hole_radius);
     Player players[2] = {0};
 
     // Configuración de jugadores
     players[0].color = COLOR_PLAYER1;
     players[0].arrow_color = COLOR_TEXT_HOME;
-    players[0].ball_color = COLOR_BALL1;
+    players[0].ball_color = COLOR_WHITE;
     players[0].control_up = SC_UP;     // Usar scancode para flecha arriba
     players[0].control_left = SC_LEFT;  // Usar scancode para flecha izquierda
     players[0].control_right = SC_RIGHT; // Usar scancode para flecha derecha
@@ -108,7 +109,7 @@ void game_start(int num_players) {
         do {
             players[i].x = rand_range(margin + PLAYER_RADIUS, SCREEN_WIDTH - margin - PLAYER_RADIUS);
             players[i].y = rand_range(UI_TOP_MARGIN + margin + PLAYER_RADIUS, SCREEN_HEIGHT - margin - PLAYER_RADIUS);
-        } while (circles_overlap(players[i].x, players[i].y, PLAYER_RADIUS + 10, hole_x, hole_y, 15 + 10) ||
+        } while (circles_overlap(players[i].x, players[i].y, PLAYER_RADIUS + 10, hole_x, hole_y, hole_radius + 10) ||
                  (i == 1 && circles_overlap(players[0].x, players[0].y, PLAYER_RADIUS * 2 + 10, players[1].x, players[1].y, PLAYER_RADIUS + 10)) ||
                  circle_obstacle_collision(players[i].x, players[i].y, PLAYER_RADIUS + 10, obstacles, num_obstacles, NULL));
 
@@ -116,7 +117,7 @@ void game_start(int num_players) {
             players[i].ball_x = rand_range(margin + 5, SCREEN_WIDTH - margin - 5);
             players[i].ball_y = rand_range(UI_TOP_MARGIN + margin + 5, SCREEN_HEIGHT - margin - 5);
         } while (
-            circles_overlap(players[i].ball_x, players[i].ball_y, 5 + 10, hole_x, hole_y, 15 + 10) ||
+            circles_overlap(players[i].ball_x, players[i].ball_y, 5 + 10, hole_x, hole_y, hole_radius + 10) ||
             circles_overlap(players[i].ball_x, players[i].ball_y, 5 + 10, players[i].x, players[i].y, PLAYER_RADIUS + 10) ||
             (i == 1 && circles_overlap(players[0].ball_x, players[0].ball_y, 5 + 10, players[1].ball_x, players[1].ball_y, 5 + 10)) ||
             circle_obstacle_collision(players[i].ball_x, players[i].ball_y, 5 + 10, obstacles, num_obstacles, NULL)
@@ -138,11 +139,11 @@ void game_start(int num_players) {
     draw_obstacles(obstacles, num_obstacles);
 
     // Dibujo inicial
-    drawCircle(hole_x, hole_y, 15, COLOR_BLACK);
+    drawCircle(hole_x, hole_y, hole_radius, COLOR_BLACK);
     for (int i = 0; i < num_players; i++) {
         drawCircle(players[i].x, players[i].y, PLAYER_RADIUS, players[i].color);
         drawCircle(players[i].ball_x, players[i].ball_y, 5, players[i].ball_color);
-        drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, players[i].arrow_color, players, num_players, obstacles, num_obstacles);
+        drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, hole_radius, players[i].arrow_color, players, num_players, obstacles, num_obstacles);
     }
 
     drawFullWidthBar(0, 16, COLOR_BLACK);
@@ -153,12 +154,12 @@ void game_start(int num_players) {
 
     if (num_players == 1) {
         sprintf(status_str, "Nivel: %d | Golpes: %d | Obstaculos: %d", get_current_level(), players[0].golpes, num_obstacles);
-        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
+        drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
         last_golpes_p1 = players[0].golpes;
     } else {
         sprintf(status_str, "Nivel: %d | Toques P1: %d | Toques P2: %d | Victorias P1: %d | Victorias P2: %d", 
                 get_current_level(), players[0].golpes, players[1].golpes, victorias_p1, victorias_p2);
-        drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
+        drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
         last_golpes_p1 = players[0].golpes;
         last_golpes_p2 = players[1].golpes;
     }
@@ -168,14 +169,14 @@ void game_start(int num_players) {
         if (num_players == 1) {
             if (players[0].golpes != last_golpes_p1) {
                 sprintf(status_str, "Nivel: %d | Golpes: %d | Obstaculos: %d", get_current_level(), players[0].golpes, num_obstacles);
-                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
+                drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
                 last_golpes_p1 = players[0].golpes;
             }
         } else {
             if (players[0].golpes != last_golpes_p1 || players[1].golpes != last_golpes_p2) {
                 sprintf(status_str, "Nivel: %d | Toques P1: %d | Toques P2: %d | Victorias P1: %d | Victorias P2: %d", 
                         get_current_level(), players[0].golpes, players[1].golpes, victorias_p1, victorias_p2);
-                drawTextFixed(10, 0, status_str, COLOR_TEXT_WHITE, COLOR_BLACK);
+                drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
                 last_golpes_p1 = players[0].golpes;
                 last_golpes_p2 = players[1].golpes;
             }
@@ -218,7 +219,7 @@ void game_start(int num_players) {
                         // Verifica que no pise el hoyo
                         int dx = new_x - hole_x;
                         int dy = new_y - hole_y;
-                        if (dx*dx + dy*dy > (PLAYER_RADIUS + 15)*(PLAYER_RADIUS + 15)
+                        if (dx*dx + dy*dy > (PLAYER_RADIUS + hole_radius)*(PLAYER_RADIUS + hole_radius)
                             && !circle_obstacle_collision(new_x, new_y, PLAYER_RADIUS, obstacles, num_obstacles, NULL)) {
                             players[i].x = new_x;
                             players[i].y = new_y;
@@ -390,7 +391,7 @@ void game_start(int num_players) {
         // Verificar si alguna pelota llegó al hoyo
         for (int i = 0; i < num_players; i++) {
             int hx = players[i].ball_x - hole_x, hy = players[i].ball_y - hole_y;
-            if (hx*hx + hy*hy <= 15*15 && !players[i].ball_in_hole && ganador == -1) {
+            if (hx*hx + hy*hy <= hole_radius*hole_radius && !players[i].ball_in_hole && ganador == -1) {
                 players[i].ball_in_hole = 1;
                 players[i].ball_vx = 0;
                 players[i].ball_vy = 0;
@@ -428,22 +429,22 @@ void game_start(int num_players) {
             }
         }
 
-        drawCircle(hole_x, hole_y, 15, COLOR_BLACK);
+        drawCircle(hole_x, hole_y, hole_radius, COLOR_BLACK);
         for (int i = 0; i < num_players; i++) {
             int playerMoved = (players[i].prev_x != players[i].x || players[i].prev_y != players[i].y);
             int ballMoved = (players[i].prev_ball_x != players[i].ball_x || players[i].prev_ball_y != players[i].ball_y);
             int arrowChanged = (!players[i].ball_in_hole && (players[i].prev_angle != players[i].angle || playerMoved));
             if (playerMoved) {
-                erasePlayerSmart(players[i].prev_x, players[i].prev_y, players, num_players, hole_x, hole_y, obstacles, num_obstacles);
+                erasePlayerSmart(players[i].prev_x, players[i].prev_y, players, num_players, hole_x, hole_y, hole_radius, obstacles, num_obstacles);
                 drawCircle(players[i].x, players[i].y, PLAYER_RADIUS, players[i].color);
             }
             if (ballMoved) {
-                eraseBallSmart(players[i].prev_ball_x, players[i].prev_ball_y, players, num_players, hole_x, hole_y, obstacles, num_obstacles);
+                eraseBallSmart(players[i].prev_ball_x, players[i].prev_ball_y, players, num_players, hole_x, hole_y, hole_radius, obstacles, num_obstacles);
                 drawCircle(players[i].ball_x, players[i].ball_y, 5, players[i].ball_color);
             }
             if (arrowChanged) {
-                eraseArrow(players[i].prev_x, players[i].prev_y, players[i].prev_angle, hole_x, hole_y, players, num_players, obstacles, num_obstacles);
-                drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, players[i].arrow_color, players, num_players, obstacles, num_obstacles);
+                eraseArrow(players[i].prev_x, players[i].prev_y, players[i].prev_angle, hole_x, hole_y, hole_radius, players, num_players, obstacles, num_obstacles);
+                drawPlayerArrow(players[i].x, players[i].y, players[i].angle, hole_x, hole_y, hole_radius, players[i].arrow_color, players, num_players, obstacles, num_obstacles);
             }
             players[i].prev_x = players[i].x;
             players[i].prev_y = players[i].y;

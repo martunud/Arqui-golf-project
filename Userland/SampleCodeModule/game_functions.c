@@ -85,7 +85,7 @@ void drawTextWithBg(int x, int y, const char *text, uint32_t textColor, uint32_t
 }
 
 // Borra la pelota anterior
-void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_players, int hole_x, int hole_y, Obstacle *obstacles, int num_obstacles) {
+void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_players, int hole_x, int hole_y, int hole_radius, Obstacle *obstacles, int num_obstacles) {
     for (int y = -5; y <= 5; y++) {
         for (int x = -5; x <= 5; x++) {
             if (x*x + y*y <= 5*5) {
@@ -136,7 +136,7 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
 }
 
 // Borra el jugador anterior
-void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, int hole_x, int hole_y, Obstacle *obstacles, int num_obstacles) {
+void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, int hole_x, int hole_y, int hole_radius, Obstacle *obstacles, int num_obstacles) {
     for (int y = -PLAYER_RADIUS; y <= PLAYER_RADIUS; y++) {
         for (int x = -PLAYER_RADIUS; x <= PLAYER_RADIUS; x++) {
             if (x*x + y*y <= PLAYER_RADIUS*PLAYER_RADIUS) {
@@ -172,7 +172,7 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
                             }
                         }
                     }
-                    if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= 15*15)) {
+                    if (!painted && ((px - hole_x)*(px - hole_x) + (py - hole_y)*(py - hole_y) <= hole_radius*hole_radius)) {
                         video_putPixel(px, py, COLOR_BLACK);
                         painted = 1;
                     }
@@ -186,10 +186,10 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
 }
 
 // Devuelve 1 si el punto está dentro del hoyo
-int isInsideHole(int x, int y, int h_x, int h_y) {
+int isInsideHole(int x, int y, int h_x, int h_y, int hole_radius) {
     int dx = x - h_x;
     int dy = y - h_y;
-    return (dx*dx + dy*dy <= 15*15);
+    return (dx*dx + dy*dy <= hole_radius*hole_radius);
 }
 
 // Reemplazo la implementación de rand por my_rand
@@ -253,7 +253,7 @@ void displayFullScreenMessage(const char *message, uint32_t textColor) {
 }
 
 // Dibuja la flecha del jugador
-void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y, int arrow_color, Player *players, int num_players, Obstacle *obstacles, int num_obstacles) {
+void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, int hole_y, int hole_radius, int arrow_color, Player *players, int num_players, Obstacle *obstacles, int num_obstacles) {
     int arrow_len = 18;
     int arrow_x = player_x + (cos_table[player_angle] * arrow_len) / 100;
     int arrow_y = player_y + (sin_table[player_angle] * arrow_len) / 100;
@@ -278,7 +278,7 @@ void drawPlayerArrow(int player_x, int player_y, int player_angle, int hole_x, i
 }
 
 // Borra la flecha anterior
-void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, Player *players, int num_players, Obstacle *obstacles, int num_obstacles) {
+void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, int hole_radius, Player *players, int num_players, Obstacle *obstacles, int num_obstacles) {
     int prev_arrow_len = 18;
     int prev_arrow_x = prev_x + (cos_table[prev_angle] * prev_arrow_len) / 100;
     int prev_arrow_y = prev_y + (sin_table[prev_angle] * prev_arrow_len) / 100;
@@ -295,7 +295,7 @@ void eraseArrow(int prev_x, int prev_y, int prev_angle, int hole_x, int hole_y, 
             int px = arrow_points[i][0];
             int py = arrow_points[i][1];
             if (IN_SCREEN(px, py) && !point_in_obstacle(px, py, obstacles, num_obstacles)) {
-                if (isInsideHole(px, py, hole_x, hole_y)) {
+                if (isInsideHole(px, py, hole_x, hole_y, hole_radius)) {
                     video_putPixel(px, py, COLOR_BLACK);
                 } else {
                     int painted = 0;
@@ -383,6 +383,18 @@ int get_current_level() {
     return current_level;
 }
 
+// Calcula el radio del hoyo basado en el nivel
+// Nivel 1: radio 15, Nivel 20: radio 8 (mínimo)
+int get_hole_radius(int level) {
+    if (level <= 1) return 15;  // Radio máximo
+    if (level >= 20) return 8;  // Radio mínimo
+    
+    // Reducción gradual: de 15 en nivel 1 a 8 en nivel 20
+    // Reducción = 7 unidades en 19 niveles
+    int reduction = ((level - 1) * 7) / 19;
+    return 15 - reduction;
+}
+
 // Calcula el factor de potencia de la pelota basado en el nivel
 // Nivel 1: 100% de velocidad, Nivel 20: 60% de velocidad (mínimo)
 int get_ball_power_factor(int level) {
@@ -394,18 +406,6 @@ int get_ball_power_factor(int level) {
     // Reducción = 40% en 19 niveles = ~2.1% por nivel
     int reduction_percent = ((level - 1) * 40) / 19;
     return (base_power * (100 - reduction_percent)) / 100;
-}
-
-// Calcula el radio del hoyo basado en el nivel
-// Nivel 1: radio 15, Nivel 20: radio 8 (mínimo)
-int get_hole_radius(int level) {
-    if (level <= 1) return 15;
-    if (level >= 20) return 8; // Radio mínimo
-    
-    // Reducción gradual: de 15 en nivel 1 a 8 en nivel 20
-    // Reducción = 7 unidades en 19 niveles
-    int reduction = ((level - 1) * 7) / 19;
-    return 15 - reduction;
 }
 
 void generate_obstacles(Obstacle *obstacles, int *num_obstacles, int level, int hole_x, int hole_y) {
