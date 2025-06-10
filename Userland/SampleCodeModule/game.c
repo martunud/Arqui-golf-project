@@ -3,6 +3,51 @@
 #include "include/game_functions.h"
 
 
+typedef struct {
+    int freq;    // frecuencia en Hz (0 para silencio)
+    int dur_ms;  // duración en ms
+} MelodyNote;
+
+// Frecuencias según tu lista
+enum {
+    G   = 392,
+    A1  = 466,
+    C   = 262,
+    F   = 349,
+    F1  = 370,
+    Gb = 93
+};
+
+// “First” de Mission Impossible
+static const MelodyNote mission_first[] = {
+    { G, 500 }, { G, 400 }, { G, 250 }, { G, 250 },
+    { A1,250 }, { C, 250 }, { G, 250 }, { G, 250 },
+    { G, 250 }, { G, 250 }, { F, 250 }, { F1,250 },
+    { G, 500 } 
+};
+
+
+static const int mission_first_len = sizeof(mission_first)/sizeof(MelodyNote);
+
+// Función que toca la melodía
+void play_melody(const MelodyNote *mel, int len) {
+    for (int i = 0; i < len; i++) {
+        if (mel[i].freq > 20) {
+            beep(mel[i].freq, mel[i].dur_ms);
+        } else {
+            // silencio
+            sleep(mel[i].dur_ms);
+        }
+        // opcional: pequeño espacio extra
+        sleep(20);
+    }
+}
+
+// Llamar desde tu código de juego:
+void play_mission_impossible(void) {
+    play_melody(mission_first, mission_first_len);
+}
+
 // Pantalla principal del juego
 void game_main_screen() {
     video_clearScreenColor(COLOR_BG_HOME);
@@ -326,6 +371,7 @@ void game_start(int num_players) {
                         return;
                     }
                 }
+                play_mission_impossible();
                 for (volatile int i = 0; i < 100000; i++);
             }
         }
