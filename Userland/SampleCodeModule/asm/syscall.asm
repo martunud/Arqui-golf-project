@@ -7,7 +7,6 @@ GLOBAL sys_clearScreen
 GLOBAL sys_beep
 GLOBAL sys_sleep
 GLOBAL sys_setFontScale
-
 GLOBAL sys_video_putPixel
 GLOBAL sys_video_putChar
 GLOBAL sys_video_clearScreenColor
@@ -16,7 +15,6 @@ GLOBAL sys_regs
 GLOBAL sys_is_key_pressed
 GLOBAL sys_shutdown
 GLOBAL sys_screenDims
-
 
 
 sys_read:
@@ -131,7 +129,7 @@ sys_is_key_pressed:
     push rbp
     mov rbp, rsp
     mov rax, 12
-    mov rdi, rdi    ; scancode ya debe estar en rdi
+    mov rdi, rdi   
     int 0x80
     mov rsp, rbp
     pop rbp

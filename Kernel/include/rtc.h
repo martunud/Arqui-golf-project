@@ -11,7 +11,6 @@
 #define RTC_YEAR 0x09
 
 extern uint8_t _readTime(uint8_t reg);
-
 uint8_t getTime(uint8_t reg);
 
 #endif 

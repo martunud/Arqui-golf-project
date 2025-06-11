@@ -5,12 +5,8 @@
 
 // Pantalla principal del juego
 void game_main_screen() {
-    // Reiniciar nivel cada vez que se entra al menú principal del juego
     reset_level();
-    
-    // Limpiar cualquier tecla residual en el buffer
     clear_key_buffer();
-    
     init_screen_dimensions();
     video_clearScreenColor(COLOR_BG_HOME);
     const char *lines[] = {
@@ -34,17 +30,17 @@ void game_main_screen() {
     }
     while (1) {
         if (is_key_pressed_syscall((unsigned char)SC_1)) {
-            clear_key_buffer(); // Limpiar buffer antes de iniciar el juego
+            clear_key_buffer(); 
             game_start(1);
-            clear_key_buffer(); // Limpiar buffer después del juego
+            clear_key_buffer();
             break;
         } else if (is_key_pressed_syscall((unsigned char)SC_2)) {
-            clear_key_buffer(); // Limpiar buffer antes de iniciar el juego
+            clear_key_buffer();
             game_start(2);
-            clear_key_buffer(); // Limpiar buffer después del juego
+            clear_key_buffer(); 
             break;
         } else if (is_key_pressed_syscall((unsigned char)SC_ESC)) {
-            clear_key_buffer(); // Limpiar buffer antes de salir
+            clear_key_buffer();
             clearScreen();
             return;
         }
@@ -55,11 +51,11 @@ void game_main_screen() {
 // Variables estáticas para contar victorias en modo multijugador
 static int victorias_p1 = 0;
 static int victorias_p2 = 0;
-static int reset_victorias = 1; // Flag para reiniciar victorias al entrar por primera vez
+static int reset_victorias = 1; 
 
 // Lógica principal del juego
 void game_start(int num_players) {
-    // Reiniciar victorias solo la primera vez que se entra al juego desde el menú
+
     if (reset_victorias) {
         victorias_p1 = 0;
         victorias_p2 = 0;
@@ -68,7 +64,7 @@ void game_start(int num_players) {
     
     video_clearScreenColor(COLOR_BG_GREEN);
     int margin = 50;
-    int hole_radius = get_hole_radius(get_current_level()); // Radio dinámico del hoyo
+    int hole_radius = get_hole_radius(get_current_level()); 
     int hole_x = rand_range(margin + hole_radius, SCREEN_WIDTH - margin - hole_radius);
     int hole_y = rand_range(UI_TOP_MARGIN + margin + hole_radius, SCREEN_HEIGHT - margin - hole_radius);
     Player players[2] = {0};
@@ -77,22 +73,22 @@ void game_start(int num_players) {
     players[0].color = COLOR_PLAYER1;
     players[0].arrow_color = COLOR_TEXT_HOME;
     players[0].ball_color = COLOR_WHITE;
-    players[0].control_up = SC_UP;     // Usar scancode para flecha arriba
-    players[0].control_left = SC_LEFT;  // Usar scancode para flecha izquierda
-    players[0].control_right = SC_RIGHT; // Usar scancode para flecha derecha
+    players[0].control_up = SC_UP;     
+    players[0].control_left = SC_LEFT;  
+    players[0].control_right = SC_RIGHT; 
     players[0].name = "Rosa";
 
     if (num_players == 2) {
         players[1].color = COLOR_PLAYER2;
         players[1].arrow_color = COLOR_TEXT_HOME;
         players[1].ball_color = COLOR_BALL2;
-        players[1].control_up = SC_W;     // Usar scancode para W
-        players[1].control_left = SC_A;   // Usar scancode para A
-        players[1].control_right = SC_D;  // Usar scancode para D
+        players[1].control_up = SC_W;     
+        players[1].control_left = SC_A;   
+        players[1].control_right = SC_D;  
         players[1].name = "Azul";
     }
 
-    // --- Obstáculos ---
+    //Obstáculos
     static int obstaculos_generados = 0;
     Obstacle obstacles[MAX_OBSTACLES];
     int num_obstacles = 0;
@@ -100,7 +96,6 @@ void game_start(int num_players) {
         generate_obstacles(obstacles, &num_obstacles, get_current_level(), hole_x, hole_y);
         obstaculos_generados = 1;
     } else {
-        // Si se reinicia el nivel, regenerar
         generate_obstacles(obstacles, &num_obstacles, get_current_level(), hole_x, hole_y);
     }
 
@@ -184,10 +179,8 @@ void game_start(int num_players) {
 
         // Verificar si se presiona ESC para salir
         if (is_key_pressed_syscall((unsigned char)SC_ESC)) {
-            reset_level(); // Reiniciar nivel al salir del juego
-            clear_key_buffer(); // Limpiar buffer de teclas
-            
-            // Si es modo multijugador, mostrar estadísticas finales
+            reset_level(); 
+            clear_key_buffer(); 
             if (num_players == 2) {
                 char final_msg[200];
                 if (victorias_p1 > victorias_p2) {
@@ -198,8 +191,8 @@ void game_start(int num_players) {
                     sprintf(final_msg, "EMPATE! Rosa %d - Azul %d", victorias_p1, victorias_p2);
                 }
                 displayFullScreenMessage(final_msg, COLOR_TEXT_HOME);
-                sleep(5000); // Mostrar por 5 segundos
-                reset_victorias = 1; // Reiniciar flag para próxima sesión
+                sleep(5000);
+                reset_victorias = 1; 
             }
             
             clearScreen();
@@ -209,14 +202,12 @@ void game_start(int num_players) {
         // Control de jugadores
         for (int i = 0; i < num_players; i++) {
             if (!players[i].ball_in_hole) {
-                // Mover hacia adelante
                 if (is_key_pressed_syscall((unsigned char)players[i].control_up)) {
                     int step = 1;
                     int new_x = players[i].x + (cos_table[players[i].angle] * step) / 10;
                     int new_y = players[i].y + (sin_table[players[i].angle] * step) / 10;
                     if (new_x >= PLAYER_RADIUS && new_x <= SCREEN_WIDTH - PLAYER_RADIUS &&
                         new_y >= UI_TOP_MARGIN + PLAYER_RADIUS && new_y <= SCREEN_HEIGHT - PLAYER_RADIUS) {
-                        // Verifica que no pise el hoyo
                         int dx = new_x - hole_x;
                         int dy = new_y - hole_y;
                         if (dx*dx + dy*dy > (PLAYER_RADIUS + hole_radius)*(PLAYER_RADIUS + hole_radius)
@@ -227,23 +218,16 @@ void game_start(int num_players) {
                     }
                 }
                 
-                // Rotar a la izquierda - más lento
                 if (is_key_pressed_syscall((unsigned char)players[i].control_left)) {
                     players[i].angle = (players[i].angle + 35) % 36;
-                    // Nota: No usamos sleep aquí para no bloquear la detección de otras teclas
-                    // La velocidad de rotación se controla con el sleep al final del bucle principal
                 }
                 
-                // Rotar a la derecha - más lento
                 if (is_key_pressed_syscall((unsigned char)players[i].control_right)) {
                     players[i].angle = (players[i].angle + 1) % 36;
-                    // Nota: No usamos sleep aquí para no bloquear la detección de otras teclas
-                    // La velocidad de rotación se controla con el sleep al final del bucle principal
                 }
             }
         }
 
-        // Detecta colisiones entre jugadores y pelotas (golpe)
         for (int i = 0; i < num_players; i++) {
             for (int j = 0; j < num_players; j++) {
                 if (!players[j].ball_in_hole) {
@@ -251,37 +235,30 @@ void game_start(int num_players) {
                     int dy = players[j].ball_y - players[i].y;
                     int dist_squared = dx*dx + dy*dy;
                     if (dist_squared <= (PLAYER_RADIUS + 5)*(PLAYER_RADIUS + 5) && players[i].puede_golpear) {
-                        // Si el jugador intenta un 7mo toque, pierde instantáneamente
                         if (i == j && players[i].golpes >= 6 && ganador == -1) {
-                            ganador = (i == 0) ? 1 : 0; // El otro jugador gana
+                            ganador = (i == 0) ? 1 : 0; 
                             players[i].debe_verificar_derrota = 1;
-                            // Mostrar mensaje de derrota inmediatamente
                             char msg[120];
                             if (num_players == 1) {
                                 sprintf(msg, "DERROTA! No lograste meter la pelota en 6 golpes. Presiona Espacio/ENTER para reintentar o ESC para salir.");
                             } else {
                                 int perdedor = i;
                                 int ganador_idx = (i == 0) ? 1 : 0;
-                                sprintf(msg, "GANA %s! %s no logró meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[ganador_idx].name, players[perdedor].name);
+                                sprintf(msg, "GANA %s! %s no logro meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[ganador_idx].name, players[perdedor].name);
                             }
                             displayFullScreenMessage(msg, COLOR_TEXT_HOME);
                             
-                            // Reproducir sólo una nota como indicación sonora
                             beep(392, 250);
                             
-                            // Pequeño retraso para evitar detección inmediata de teclas
                             sleep(100);
                             
-                            // Limpiar cualquier tecla presionada antes de entrar al bucle
                             clear_key_buffer();
                             
                             while (1) {
-                                // Verificamos las teclas
-                                if (is_key_pressed_syscall((unsigned char)SC_ESC)) { 
-                                    reset_level(); // Reiniciar nivel al salir del juego
+                                if (is_key_pressed_syscall((unsigned char)SC_ESC)) {
+                                    reset_level();
                                     clear_key_buffer();
                                     
-                                    // Si es modo multijugador, mostrar estadísticas finales
                                     if (num_players == 2) {
                                         char final_msg[200];
                                         if (victorias_p1 > victorias_p2) {
@@ -292,8 +269,8 @@ void game_start(int num_players) {
                                             sprintf(final_msg, "EMPATE! Victorias: Rosa %d - Azul %d", victorias_p1, victorias_p2);
                                         }
                                         displayFullScreenMessage(final_msg, COLOR_TEXT_HOME);
-                                        sleep(5000); // Mostrar por 5 segundos
-                                        reset_victorias = 1; // Reiniciar flag para próxima sesión
+                                        sleep(5000);
+                                        reset_victorias = 1;
                                     }
                                     
                                     clearScreen(); 
@@ -306,7 +283,7 @@ void game_start(int num_players) {
                                     return;
                                 }
                                 
-                                sleep(30); // Esperar menos tiempo para mejor respuesta
+                                sleep(30);
                             }
                         }
                         players[j].ball_vx = (cos_table[players[i].angle] * POWER_FACTOR) / 10;
@@ -334,42 +311,36 @@ void game_start(int num_players) {
                 players[i].ball_x += players[i].ball_vx / 10;
                 players[i].ball_y += players[i].ball_vy / 10;
                 
-                // Rebote con obstáculos - igual que rebote en bordes
                 int idx = -1;
                 if (circle_obstacle_collision(players[i].ball_x, players[i].ball_y, 5, obstacles, num_obstacles, &idx)) {
                     Obstacle *o = &obstacles[idx];
                     int left = o->x, right = o->x + o->size;
                     int top = o->y, bottom = o->y + o->size;
                     
-                    // Determinar en qué lado del obstáculo está la pelota
+
                     int center_x = players[i].ball_x;
                     int center_y = players[i].ball_y;
                     
-                    // Calcular distancias del centro a cada borde
                     int dist_to_left = center_x - left;
                     int dist_to_right = right - center_x;
                     int dist_to_top = center_y - top;
                     int dist_to_bottom = bottom - center_y;
                     
-                    // Encontrar el lado más cercano
                     int min_dist = dist_to_left;
-                    int side = 0; // 0:left, 1:right, 2:top, 3:bottom
+                    int side = 0; 
                     
                     if (dist_to_right < min_dist) { min_dist = dist_to_right; side = 1; }
                     if (dist_to_top < min_dist) { min_dist = dist_to_top; side = 2; }
                     if (dist_to_bottom < min_dist) { min_dist = dist_to_bottom; side = 3; }
                     
-                    // Rebote idéntico al de los bordes
                     if (side == 0 || side == 1) {
-                        // Lado izquierdo o derecho: invertir vx
                         players[i].ball_vx = -players[i].ball_vx;
-                        if (side == 0) players[i].ball_x = left - 5;  // Lado izquierdo
-                        else players[i].ball_x = right + 5; // Lado derecho
+                        if (side == 0) players[i].ball_x = left - 5;  
+                        else players[i].ball_x = right + 5; 
                     } else {
-                        // Lado superior o inferior: invertir vy
                         players[i].ball_vy = -players[i].ball_vy;
-                        if (side == 2) players[i].ball_y = top - 5;  // Lado superior
-                        else players[i].ball_y = bottom + 5; // Lado inferior
+                        if (side == 2) players[i].ball_y = top - 5;
+                        else players[i].ball_y = bottom + 5;
                     }
                     audiobounce();
                 }
@@ -388,7 +359,6 @@ void game_start(int num_players) {
             if (players[i].ball_y > SCREEN_HEIGHT - 5) { players[i].ball_y = SCREEN_HEIGHT - 5; players[i].ball_vy = -players[i].ball_vy; audiobounce(); }
         }
         
-        // Verificar si alguna pelota llegó al hoyo
         for (int i = 0; i < num_players; i++) {
             int hx = players[i].ball_x - hole_x, hy = players[i].ball_y - hole_y;
             if (hx*hx + hy*hy <= hole_radius*hole_radius && !players[i].ball_in_hole && ganador == -1) {
@@ -399,7 +369,6 @@ void game_start(int num_players) {
                 players[i].ball_y = hole_y;
                 ganador = i;
                 
-                // Incrementar victorias en modo multijugador
                 if (num_players == 2) {
                     if (i == 0) {
                         victorias_p1++;
@@ -419,7 +388,6 @@ void game_start(int num_players) {
                 } 
                 else {
                     ganador = (i == 0) ? 1 : 0;
-                    // Incrementar victorias del ganador
                     if (ganador == 0) {
                         victorias_p1++;
                     } else {
@@ -477,19 +445,15 @@ void game_start(int num_players) {
             
             //beep(G, 250);
             play_mission_impossible();
-            // Pequeño retraso para evitar detección inmediata de teclas
             sleep(100);
             
-            // Limpiar cualquier tecla presionada antes de entrar al bucle
             clear_key_buffer();
             
             while (1) {
-                // Primero verificamos las teclas
                 if (is_key_pressed_syscall((unsigned char)SC_ESC)) { 
-                    reset_level(); // Reiniciar nivel al salir del juego
+                    reset_level(); 
                     clear_key_buffer();
                     
-                    // Si es modo multijugador, mostrar estadísticas finales
                     if (num_players == 2) {
                         char final_msg[200];
                         if (victorias_p1 > victorias_p2) {
@@ -500,8 +464,8 @@ void game_start(int num_players) {
                             sprintf(final_msg, "EMPATE! Victorias: Rosa %d - Azul %d", victorias_p1, victorias_p2);
                         }
                         displayFullScreenMessage(final_msg, COLOR_TEXT_HOME);
-                        sleep(5000); // Mostrar por 5 segundos
-                        reset_victorias = 1; // Reiniciar flag para próxima sesión
+                        sleep(5000); 
+                        reset_victorias = 1;
                     }
                     
                     clearScreen(); 
@@ -510,21 +474,17 @@ void game_start(int num_players) {
                 else if (is_key_pressed_syscall((unsigned char)SC_SPACE) || 
                          is_key_pressed_syscall((unsigned char)SC_ENTER)) {
                     clearScreen();
-                    // Incrementar nivel solo si fue victoria (no derrota)
                     if (ganador != -2) {
-                        // Si fue victoria, incrementar nivel
                         increment_level();
                     }
                     game_start(num_players);
                     return;
                 }
                 
-                sleep(30); // Esperar menos tiempo para mejor respuesta
+                sleep(30); 
             }
         }
 
-        // Limitamos la velocidad del juego para que no vaya demasiado rápido
-        // Controla tanto la velocidad del juego como la sensibilidad de rotación
-        sleep(25); // Este valor controla la velocidad general del juego
+        sleep(25);
     }
 }

@@ -5,7 +5,7 @@ SOURCES=$(wildcard *.c)
 SOURCES_DRIVERS=$(wildcard drivers/*.c)
 SOURCES_ASM=$(wildcard asm/*.asm)
 OBJECTS=$(SOURCES:.c=.o)
-OBJECTS_DRIVERS=$(SOURCES_DRIVERS:.c=.o)  # Esta línea faltaba
+OBJECTS_DRIVERS=$(SOURCES_DRIVERS:.c=.o) 
 OBJECTS_ASM=$(SOURCES_ASM:.asm=.o)
 LOADERSRC=loader.asm
 

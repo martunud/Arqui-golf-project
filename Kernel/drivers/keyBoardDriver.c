@@ -18,14 +18,13 @@ uint8_t key_states[256] = {0};
 
 typedef struct CircleBuffer{
     char buffer[BUFFER_SIZE];
-    int readIndex;              //indice del proximo caracter a leer
-    int writeIndex;             //indice del proximo caracter a escribir  
+    int readIndex;          
+    int writeIndex;          
     int size;
 } TCircleBuffer;
 
 
 static TCircleBuffer buffer = {.readIndex = 0, .writeIndex = 0, .size = 0};
-
 
 // En primer indice char sin shift, en segundo indice char con shift
 static const char scancode_table[KEY_COUNT][2] = {
@@ -47,12 +46,9 @@ void keyboard_interrupt_handler() {
     uint8_t scancode = getScanCode();           
     updateFlags(scancode);                     
 
-    // Actualizar el estado de las teclas
     if (scancode & RELEASE_OFFSET) {
-        // Tecla liberada (bit más significativo en 1)
         key_states[scancode & ~RELEASE_OFFSET] = 0;
     } else {
-        // Tecla presionada
         key_states[scancode] = 1;
     }
 
@@ -117,7 +113,6 @@ char keyboard_read_getchar() {
 }
 
 static char scToAscii(uint8_t scancode) {
-    // Primero chequea flechas y otras teclas especiales
     switch (scancode) {
         case 1:
         case SC_UP:
@@ -126,12 +121,11 @@ static char scToAscii(uint8_t scancode) {
         case SC_RIGHT:
         case ESC:
         case SC_DELETE:
-            return 0;  // No devolvemos caracter para teclas especiales
+            return 0; 
         default:
             break;
     }
 
-    // Si no es tecla especial, busca en la tabla
     if (scancode < KEY_COUNT) {
         char c = scancode_table[scancode][activeShift];
         if (activeCapsLock && c >= 'a' && c <= 'z') {
@@ -142,7 +136,6 @@ static char scToAscii(uint8_t scancode) {
     return 0;
 }
 
-// Implementación de la función is_key_pressed
 uint8_t is_key_pressed(uint8_t scancode) {
     if (scancode < 256) {
         return key_states[scancode];

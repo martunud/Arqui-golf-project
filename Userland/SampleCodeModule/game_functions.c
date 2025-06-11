@@ -21,15 +21,13 @@ void init_screen_dimensions() {
 const int cos_table[36] = {100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17,0,17,34,50,64,77,87,94,98};
 const int sin_table[36] = {0,17,34,50,64,77,87,94,98,100,98,94,87,77,64,50,34,17,0,-17,-34,-50,-64,-77,-87,-94,-98,-100,-98,-94,-87,-77,-64,-50,-34,-17};
 
-// Variable global para el nivel actual
 int current_level = 1;
 
 typedef struct {
-    int freq;    // frecuencia en Hz (0 para silencio)
-    int dur_ms;  // duración en ms
+    int freq;    
+    int dur_ms;
 } MelodyNote;
 
-// Frecuencias según tu lista
 enum {
     G   = 392,
     A1  = 466,
@@ -48,7 +46,6 @@ static const MelodyNote mission_first[] = {
 };
 
 static const int mission_first_len = sizeof(mission_first)/sizeof(MelodyNote);
-
 
 // Dibuja un círculo
 void drawCircle(int cx, int cy, int radius, uint32_t color) {
@@ -94,7 +91,6 @@ void eraseBallSmart(int prev_ball_x, int prev_ball_y, Player *players, int num_p
                 if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
                     int painted = 0;
                     
-                    // Verificar si es un obstáculo
                     if (point_in_obstacle(px, py, obstacles, num_obstacles)) {
                         video_putPixel(px, py, COLOR_BROWN);
                         painted = 1;
@@ -145,14 +141,12 @@ void erasePlayerSmart(int prev_x, int prev_y, Player *players, int num_players, 
                 if (px >= 0 && px < SCREEN_WIDTH && py >= UI_TOP_MARGIN && py < SCREEN_HEIGHT) {
                     int painted = 0;
                     
-                    // Verificar si es un obstáculo
                     if (point_in_obstacle(px, py, obstacles, num_obstacles)) {
                         video_putPixel(px, py, COLOR_BROWN);
                         painted = 1;
                     }
                     
                     if (!painted) {
-                        // Repinta otro jugador si corresponde
                         for (int j = 0; j < num_players; j++) {
                             if (prev_x != players[j].x || prev_y != players[j].y) {
                                 if ((px - players[j].x)*(px - players[j].x) + (py - players[j].y)*(py - players[j].y) <= PLAYER_RADIUS*PLAYER_RADIUS) {
@@ -371,7 +365,7 @@ void play_mission_impossible(void) {
 void increment_level() {
     current_level++;
     if (current_level > MAX_OBSTACLES) {
-        current_level = MAX_OBSTACLES; // Limitar el nivel máximo
+        current_level = MAX_OBSTACLES;
     }
 }
 
@@ -384,39 +378,29 @@ int get_current_level() {
 }
 
 // Calcula el radio del hoyo basado en el nivel
-// Nivel 1: radio 15, Nivel 20: radio 8 (mínimo)
 int get_hole_radius(int level) {
-    if (level <= 1) return 15;  // Radio máximo
-    if (level >= 20) return 8;  // Radio mínimo
-    
-    // Reducción gradual: de 15 en nivel 1 a 8 en nivel 20
-    // Reducción = 7 unidades en 19 niveles
+    if (level <= 1) return 15;  
+    if (level >= 20) return 8;  
+
     int reduction = ((level - 1) * 7) / 19;
     return 15 - reduction;
 }
 
 // Calcula el factor de potencia de la pelota basado en el nivel
-// Nivel 1: 100% de velocidad, Nivel 20: 60% de velocidad (mínimo)
 int get_ball_power_factor(int level) {
     int base_power = POWER_FACTOR;
     if (level <= 1) return base_power;
-    if (level >= 20) return (base_power * 60) / 100; // 60% del poder original
-    
-    // Reducción gradual: de 100% en nivel 1 a 60% en nivel 20
-    // Reducción = 40% en 19 niveles = ~2.1% por nivel
+    if (level >= 20) return (base_power * 60) / 100; 
+
     int reduction_percent = ((level - 1) * 40) / 19;
     return (base_power * (100 - reduction_percent)) / 100;
 }
 
 void generate_obstacles(Obstacle *obstacles, int *num_obstacles, int level, int hole_x, int hole_y) {
-    // Calcular número de obstáculos basado en el nivel
-    // Nivel 1: 0 obstáculos, Nivel 2: 1 obstáculo, Nivel 3: 2 obstáculos, etc.
-    // Máximo 20 obstáculos
-    int count = level - 1; // Empieza con 0 obstáculos en nivel 1
-    if (count < 0) count = 0; // Asegurar que no sea negativo
-    if (count > 20) count = 20; // Máximo 20 obstáculos
-    
-    // Tamaños más pequeños y variados
+    int count = level - 1; 
+    if (count < 0) count = 0; 
+    if (count > 20) count = 20; 
+
     int min_size = 15, max_size = 35;
     int tries = 0;
     int i = 0;
@@ -426,14 +410,12 @@ void generate_obstacles(Obstacle *obstacles, int *num_obstacles, int level, int 
         int x = rand_range(0, SCREEN_WIDTH - size - 1);
         int y = rand_range(UI_TOP_MARGIN, SCREEN_HEIGHT - size - 1);
         
-        // No sobre el hoyo (área más amplia de protección)
         int hx = hole_x, hy = hole_y;
         if (hx >= x-30 && hx <= x+size+30 && hy >= y-30 && hy <= y+size+30) { 
             tries++; 
             continue; 
         }
         
-        // No superpuestos con otros obstáculos (mayor separación)
         int overlap = 0;
         for (int j = 0; j < i; j++) {
             if (!(x+size+15 < obstacles[j].x || x > obstacles[j].x+obstacles[j].size+15 ||
@@ -498,40 +480,31 @@ void bounce_ball_on_obstacle(int *vx, int *vy, int *ball_x, int *ball_y, int rad
     int left = o->x, right = o->x + o->size;
     int top = o->y, bottom = o->y + o->size;
 
-    // Determinar en qué lado del obstáculo está la pelota
-    // basándose en la posición del centro de la pelota
     int center_x = *ball_x;
     int center_y = *ball_y;
     
-    // Calcular distancias del centro a cada borde
     int dist_to_left = center_x - left;
     int dist_to_right = right - center_x;
     int dist_to_top = center_y - top;
     int dist_to_bottom = bottom - center_y;
     
-    // Encontrar el lado más cercano
     int min_dist = dist_to_left;
-    int side = 0; // 0:left, 1:right, 2:top, 3:bottom
-    
+    int side = 0; 
+
     if (dist_to_right < min_dist) { min_dist = dist_to_right; side = 1; }
     if (dist_to_top < min_dist) { min_dist = dist_to_top; side = 2; }
     if (dist_to_bottom < min_dist) { min_dist = dist_to_bottom; side = 3; }
     
-    // Rebote idéntico al de los bordes: simple inversión de velocidad
     if (side == 0) {
-        // Lado izquierdo: invertir vx y colocar fuera del obstáculo
         *vx = -(*vx);
         *ball_x = left - radius;
     } else if (side == 1) {
-        // Lado derecho: invertir vx y colocar fuera del obstáculo
         *vx = -(*vx);
         *ball_x = right + radius;
     } else if (side == 2) {
-        // Lado superior: invertir vy y colocar fuera del obstáculo
         *vy = -(*vy);
         *ball_y = top - radius;
     } else if (side == 3) {
-        // Lado inferior: invertir vy y colocar fuera del obstáculo
         *vy = -(*vy);
         *ball_y = bottom + radius;
     }

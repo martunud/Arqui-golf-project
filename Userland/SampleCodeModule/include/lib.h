@@ -38,7 +38,6 @@ void getTime(char *buffer);
 void setFontScale(int scale);
 void save_registers_snapshot(uint64_t *buffer);
 void printHex64(uint64_t value);
-
 void video_putPixel(int x, int y, uint32_t color);
 void video_putChar(char c, uint32_t fg, uint32_t bg);
 void video_clearScreenColor(uint32_t color);
@@ -51,8 +50,6 @@ int is_key_pressed_syscall(unsigned char scancode);
 void clear_key_buffer();
 char *toLower(char *str);
 void shutdown();
-
-
 int getScreenDims(uint64_t *width, uint64_t *height);
 
 #endif

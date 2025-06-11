@@ -1,6 +1,5 @@
 GLOBAL cpuVendor
 GLOBAL getScanCode
-
 GLOBAL _readTime
 GLOBAL inb
 GLOBAL outb
@@ -17,13 +16,10 @@ cpuVendor:
 	mov rax, 0
 	cpuid
 
-
 	mov [rdi], ebx
 	mov [rdi + 4], edx
 	mov [rdi + 8], ecx
-
 	mov byte [rdi+13], 0
-
 	mov rax, rdi
 
 	pop rbx
@@ -32,12 +28,10 @@ cpuVendor:
 	pop rbp
 	ret
 
-
 getScanCode:
-    xor rax, rax     ; Limpio el registro RAX
-    in al, 0x60      ; Lee un byte del puerto del teclado (0x60) y lo guarda en AL (parte baja de RAX)
-    ret              ; Devuelve el scancode en RAX 
-
+    xor rax, rax   
+    in al, 0x60  
+    ret          
 
 _readTime:
     push rbp
@@ -59,9 +53,7 @@ _readTime:
 inb:
     push rbp
     mov rbp, rsp
-
     in al, dx
-
     mov rsp, rbp
     pop rbp
     ret
@@ -69,7 +61,7 @@ inb:
 outb:
     push rbp
     mov rbp, rsp
-
+    
     mov dx, di
     mov al, sil
     out dx, al    

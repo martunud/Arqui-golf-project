@@ -3,16 +3,15 @@
 
 #include <stdint.h>
 
-// Colores
-#define COLOR_BG_HOME 0x3D8B7D // verde
-#define COLOR_TEXT_HOME 0xF9DFE0 //rosa claro
+#define COLOR_BG_HOME 0x3D8B7D
+#define COLOR_TEXT_HOME 0xF9DFE0
 #define COLOR_BG_GREEN 0xB5CE64
 #define COLOR_PLAYER1 0xFF4D85
 #define COLOR_PLAYER2 0x006280
 #define COLOR_BALL2 0x00BBE6
 #define COLOR_WHITE 0xFFFFFF
 #define COLOR_BLACK 0x000000 
-#define COLOR_BROWN 0x8B4513 // marrón para obstáculos 
+#define COLOR_BROWN 0x8B4513
 
 extern int SCREEN_WIDTH;
 extern int SCREEN_HEIGHT;
@@ -29,7 +28,6 @@ extern int SCREEN_HEIGHT;
 extern const int cos_table[36];
 extern const int sin_table[36];
 
-// Variable global para el nivel actual
 extern int current_level;
 
 typedef struct {
@@ -48,10 +46,9 @@ typedef struct {
     char *name;
 } Player;
 
-// Estructura para obstáculo cuadrado
 typedef struct {
-    int x, y; // esquina superior izquierda
-    int size; // lado del cuadrado
+    int x, y;
+    int size; 
 } Obstacle;
 
 void drawCircle(int cx, int cy, int radius, uint32_t color);

@@ -18,7 +18,7 @@ save_registers_snapshot:
     mov [rdi + 13*8], r14
     mov [rdi + 14*8], r15
     lea rax, [rel .return_address]
-    mov [rdi + 15*8], rax      ; RIP (aproximado)
+    mov [rdi + 15*8], rax      ; RIP
     mov rax, rsp
     mov [rdi + 16*8], rax      ; RSP
     pushfq

@@ -12,7 +12,7 @@ const TShellCmd shellCmds[] = {
     {"set-user", setUserCmd, ": Setea el nombre de usuario, con un maximo de 10 caracteres\n"},
     {"clear", clearCmd, ": Limpia la pantalla\n"},
     {"time", timeCmd, ": Muestra la hora actual\n"},
-    {"font-size", fontSizeCmd, ": Cambia el tamano de la fuente\n"},
+    {"font-size", fontSizeCmd, ": Cambia el tamanio de la fuente\n"},
     {"exceptions", exceptionCmd, ": Testear excepciones. Ingrese: exceptions [zero/invalidOpcode] para testear alguna operacion\n"},
     {"jugar", gameCmd, ": Inicia el modo juego\n"},
     {"regs", regsCmd, ": Muestra los ultimos 18 registros de la CPU\n"},
@@ -82,18 +82,18 @@ int fontSizeCmd(int argc, char *argv[]){
     char input[10];
     int size;
     
-    printf("Ingrese el nuevo tamaño de la fuente (1-3): ");
+    printf("Ingrese el nuevo tamanio de la fuente (1-3): ");
     readLine(input, sizeof(input));
     size = atoi(input);
     
     if(size < 1 || size > 3){
-        printf("Tamaño inválido. Debe estar entre 1 y 3.\n");
+        printf("Tamanio invalido. Debe estar entre 1 y 3.\n");
         return CMD_ERROR;
     }
     
     setFontScale(size);
     clearScreen();
-    printf("Tamaño de fuente cambiado a: %d\n", size);
+    printf("Tamanio de fuente cambiado a: %d\n", size);
     return OK;
 }
 

@@ -21,7 +21,6 @@ void int_20() {
 	timer_handler();
 }
 
-//Defino numero para keyBoard
 void int_21() {
 	keyboard_interrupt_handler();
 }
