@@ -148,7 +148,7 @@ void game_start(int num_players) {
     char status_str[120];
 
     if (num_players == 1) {
-        sprintf(status_str, "Nivel: %d | Golpes: %d | Obstaculos: %d", get_current_level(), players[0].golpes, num_obstacles);
+        sprintf(status_str, "Nivel: %d | Golpes: %d", get_current_level(), players[0].golpes);
         drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
         last_golpes_p1 = players[0].golpes;
     } else {
@@ -163,7 +163,7 @@ void game_start(int num_players) {
     while (1) {
         if (num_players == 1) {
             if (players[0].golpes != last_golpes_p1) {
-                sprintf(status_str, "Nivel: %d | Golpes: %d | Obstaculos: %d", get_current_level(), players[0].golpes, num_obstacles);
+                sprintf(status_str, "Nivel: %d | Golpes: %d", get_current_level(), players[0].golpes);
                 drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
                 last_golpes_p1 = players[0].golpes;
             }
