@@ -213,37 +213,51 @@ void drawFullWidthBar(int y, int height, uint32_t color) {
     }
 }
 
-// Muestra un mensaje a pantalla completa
+//Muestra un mensaje en pantalla completa
 void displayFullScreenMessage(const char *message, uint32_t textColor) {
-    int original_font_size = current_font_scale;
-    
+    int original_scale = current_font_scale;
     setFontScale(1);
-    
-    for (int y = 0; y < SCREEN_HEIGHT; y++) {
-        for (int x = 0; x < SCREEN_WIDTH; x++) {
-            video_putPixel(x, y, COLOR_BLACK);
+
+    for (int yy = 0; yy < SCREEN_HEIGHT; yy++) {
+        for (int xx = 0; xx < SCREEN_WIDTH; xx++) {
+            video_putPixel(xx, yy, COLOR_BLACK);
         }
     }
-    for (int x = 0; x < SCREEN_WIDTH; x++) {
-        video_putPixel(x, 10, textColor);
-        video_putPixel(x, SCREEN_HEIGHT - 10, textColor);
+
+    for (int xx = 0; xx < SCREEN_WIDTH; xx++) {
+        video_putPixel(xx, 10, textColor);
+        video_putPixel(xx, SCREEN_HEIGHT - 10, textColor);
     }
-    for (int y = 10; y < SCREEN_HEIGHT - 10; y++) {
-        video_putPixel(10, y, textColor);
-        video_putPixel(SCREEN_WIDTH - 10, y, textColor);
+    for (int yy = 10; yy < SCREEN_HEIGHT - 10; yy++) {
+        video_putPixel(10, yy, textColor);
+        video_putPixel(SCREEN_WIDTH - 10, yy, textColor);
     }
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
+
     int messageLen = 0;
-    const char* temp = message;
-    while (*temp) { messageLen++; temp++; }
-    drawTextWithBg(centerX - (messageLen * 4), centerY - 50, message, textColor, COLOR_BLACK);
-    for (int y = centerY - 30; y < centerY - 25; y++) {
-        for (int x = centerX - (messageLen * 4); x < centerX + (messageLen * 4); x++) {
-            video_putPixel(x, y, textColor);
+    for (const char *t = message; *t; t++) {
+        messageLen++;
+    }
+
+    int textWidth  = messageLen * 8;
+    int textHeight = 16;
+
+    int x = (SCREEN_WIDTH  - textWidth ) / 2;
+    int y = (SCREEN_HEIGHT - textHeight) / 2;
+
+    for (int yy = y; yy < y + textHeight; yy++) {
+        for (int xx = x; xx < x + textWidth; xx++) {
+            video_putPixel(xx, yy, COLOR_BLACK);
         }
     }
-    setFontScale(original_font_size);
+
+    drawTextFixed(x, y, message, textColor, COLOR_BLACK);
+
+    int underlineY = y + textHeight - 1;
+    for (int xi = x; xi < x + textWidth; xi++) {
+        video_putPixel(xi, underlineY, textColor);
+    }
+
+    setFontScale(original_scale);
 }
 
 // Dibuja la flecha del jugador
