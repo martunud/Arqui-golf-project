@@ -145,7 +145,7 @@ int exceptionCmd(int argc, char * argv[]) {
         int c = a / b;   
         printf("c: %d\n", c); 
     }
-    else if (strcmp(argv[1], "invalidOpcode") == 0) {
+    else if (strcmp(argv[1], "invalidopcode") == 0) {
         printf("Ejecutando invalidOpcode...\n");
         _invalidOp();   
     }

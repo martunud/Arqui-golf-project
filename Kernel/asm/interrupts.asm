@@ -115,15 +115,53 @@ _irq01Handler:
     cmp byte [do_snapshot], 1
     jne .no_snapshot
 
-
     mov rsi, rsp             
     mov rdi, snapshot_buffer  
-    mov rcx, 15               
 
-.rep_loop:
-    mov rax, [rsi + rcx*8 - 8] 
-    mov [rdi + rcx*8 - 8], rax 
-    loop .rep_loop
+    mov   rax, [rsi + 14*8]
+    mov   [rdi +  0*8], rax
+
+    mov   rax, [rsi + 13*8]
+    mov   [rdi +  1*8], rax
+
+    mov   rax, [rsi + 12*8]
+    mov   [rdi +  2*8], rax
+
+    mov   rax, [rsi + 11*8]
+    mov   [rdi +  3*8], rax
+
+    mov   rax, [rsi + 10*8]
+    mov   [rdi +  4*8], rax
+
+    mov   rax, [rsi +  9*8]
+    mov   [rdi +  5*8], rax
+
+    mov   rax, [rsi +  8*8]
+    mov   [rdi +  6*8], rax
+
+    mov   rax, [rsi +  7*8]
+    mov   [rdi +  7*8], rax
+
+    mov   rax, [rsi +  6*8]
+    mov   [rdi +  8*8], rax
+
+    mov   rax, [rsi +  5*8]
+    mov   [rdi +  9*8], rax
+
+    mov   rax, [rsi +  4*8]
+    mov   [rdi + 10*8], rax
+
+    mov   rax, [rsi +  3*8]
+    mov   [rdi + 11*8], rax
+
+    mov   rax, [rsi +  2*8]
+    mov   [rdi + 12*8], rax
+
+    mov   rax, [rsi +  1*8]
+    mov   [rdi + 13*8], rax
+
+    mov   rax, [rsi +  0*8]
+    mov   [rdi + 14*8], rax
 
     mov rax, [rsp + 15*8]  
     mov [snapshot_buffer + 15*8], rax   ; RIP
