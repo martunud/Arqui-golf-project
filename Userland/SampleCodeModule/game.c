@@ -148,7 +148,7 @@ void game_start(int num_players) {
     char status_str[120];
 
     if (num_players == 1) {
-        sprintf(status_str, "Nivel: %d | Golpes: %d", get_current_level(), players[0].golpes);
+        sprintf(status_str, "Nivel: %d | Golpes: %d | Victorias: %d", get_current_level(), players[0].golpes, victorias_p1);
         drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
         last_golpes_p1 = players[0].golpes;
     } else {
@@ -163,7 +163,7 @@ void game_start(int num_players) {
     while (1) {
         if (num_players == 1) {
             if (players[0].golpes != last_golpes_p1) {
-                sprintf(status_str, "Nivel: %d | Golpes: %d", get_current_level(), players[0].golpes);
+                sprintf(status_str, "Nivel: %d | Golpes: %d | Victorias: %d", get_current_level(), players[0].golpes, victorias_p1);
                 drawTextFixed(10, 0, status_str, COLOR_WHITE, COLOR_BLACK);
                 last_golpes_p1 = players[0].golpes;
             }
@@ -193,8 +193,13 @@ void game_start(int num_players) {
                 displayFullScreenMessage(final_msg, COLOR_TEXT_HOME);
                 sleep(5000);
                 reset_victorias = 1; 
+            } else {
+                char solo_msg[100];
+                sprintf(solo_msg, "Victorias totales: %d", victorias_p1);
+                displayFullScreenMessage(solo_msg, COLOR_TEXT_HOME);
+                sleep(3000);
+                reset_victorias = 1;
             }
-            
             clearScreen();
             return;
         }
@@ -271,8 +276,13 @@ void game_start(int num_players) {
                                         displayFullScreenMessage(final_msg, COLOR_TEXT_HOME);
                                         sleep(5000);
                                         reset_victorias = 1;
+                                    } else {
+                                        char solo_msg[100];
+                                        sprintf(solo_msg, "Victorias: %d", victorias_p1);
+                                        displayFullScreenMessage(solo_msg, COLOR_TEXT_HOME);
+                                        sleep(3000);
+                                        reset_victorias = 1;
                                     }
-                                    
                                     clearScreen(); 
                                     return; 
                                 }
@@ -429,15 +439,27 @@ void game_start(int num_players) {
                     sprintf(victory_msg, "DERROTA! No lograste meter la pelota en 6 golpes. Presiona Espacio/ENTER para reintentar o ESC para salir.");
                 } else if (players[0].ball_in_hole) {
                     sprintf(victory_msg, "VICTORIA! Hoyo completado en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", players[0].golpes);
+                    victorias_p1++; // Incrementar victorias en solitario
                 }
             } else {
+                // Multijugador: determinar quién ganó y actualizar victorias
                 if (players[ganador].ball_in_hole) {
                     sprintf(victory_msg, "GANA %s! Logro meter la pelota en %d golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
                         players[ganador].name, players[ganador].golpes);
+                    if (ganador == 0) {
+                        victorias_p1++;
+                    } else {
+                        victorias_p2++;
+                    }
                 } else {
                     int perdedor = (ganador == 0) ? 1 : 0;
                     sprintf(victory_msg, "GANA %s! %s no logro meter la pelota en 6 golpes. Presiona Espacio/ENTER para seguir o ESC para salir.", 
                         players[ganador].name, players[perdedor].name);
+                    if (ganador == 0) {
+                        victorias_p1++;
+                    } else {
+                        victorias_p2++;
+                    }
                 }
             }
             displayFullScreenMessage(victory_msg, COLOR_TEXT_HOME);
@@ -445,14 +467,11 @@ void game_start(int num_players) {
             
             play_mission_impossible();
             sleep(100);
-            
             clear_key_buffer();
-            
             while (1) {
                 if (is_key_pressed_syscall((unsigned char)SC_ESC)) { 
                     reset_level(); 
                     clear_key_buffer();
-                    
                     if (num_players == 2) {
                         char final_msg[200];
                         if (victorias_p1 > victorias_p2) {
@@ -465,8 +484,13 @@ void game_start(int num_players) {
                         displayFullScreenMessage(final_msg, COLOR_TEXT_HOME);
                         sleep(5000); 
                         reset_victorias = 1;
+                    } else {
+                        char solo_msg[100];
+                        sprintf(solo_msg, "Victorias: %d", victorias_p1);
+                        displayFullScreenMessage(solo_msg, COLOR_TEXT_HOME);
+                        sleep(3000);
+                        reset_victorias = 1;
                     }
-                    
                     clearScreen(); 
                     return; 
                 }
