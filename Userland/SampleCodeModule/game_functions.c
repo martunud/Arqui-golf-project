@@ -37,7 +37,7 @@ enum {
     Gb = 93
 };
 
-// "First" de Mission Impossible
+// mision imposible
 static const MelodyNote mission_first[] = {
     { G, 500 }, { G, 400 }, { G, 250 }, { G, 250 },
     { A1,250 }, { C, 250 }, { G, 250 }, { G, 250 },
@@ -386,7 +386,7 @@ int get_hole_radius(int level) {
     return 15 - reduction;
 }
 
-// Calcula el factor de potencia de la pelota basado en el nivel
+// Calcula la potencia de la pelota basado en el nivel
 int get_ball_power_factor(int level) {
     int base_power = POWER_FACTOR;
     if (level <= 1) return base_power;

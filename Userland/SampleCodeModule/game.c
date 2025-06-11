@@ -443,7 +443,6 @@ void game_start(int num_players) {
             displayFullScreenMessage(victory_msg, COLOR_TEXT_HOME);
             
             
-            //beep(G, 250);
             play_mission_impossible();
             sleep(100);
             
